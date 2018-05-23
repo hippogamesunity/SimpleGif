@@ -41,18 +41,22 @@ namespace SimpleGif.GifCore
 				}
 				else
 				{
-					ReadBits(FindKey(dict, code), codeSize, ref bits);
-					dict.Add(next, dict.Count);
+					ReadBits(dict[code], codeSize, ref bits);
 					code = colorIndexes[i].ToString();
 
-					if (dict.Count - 1 == 1 << codeSize)
+					if (dict.Count < 4096)
 					{
-						codeSize++;
+						dict.Add(next, dict.Count);
+
+						if (dict.Count - 1 == 1 << codeSize)
+						{
+							codeSize++;
+						}
 					}
 				}
 			}
 
-			ReadBits(FindKey(dict, code), codeSize, ref bits);
+			ReadBits(dict[code], codeSize, ref bits);
 			ReadBits(endOfInformation, codeSize, ref bits);
 
 			var bytes = GetBytes(bits);
@@ -70,11 +74,6 @@ namespace SimpleGif.GifCore
 			}
 
 			return dict;
-		}
-
-		private static int FindKey(Dictionary<string, int> dict, string code)
-		{
-			return dict[code];
 		}
 
 		private static void ReadBits(int key, int codeSize, ref List<bool> destination)

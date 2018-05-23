@@ -92,16 +92,9 @@ namespace SimpleGif
 
 		private List<Color32> GetColorTable(out byte transparentColorFlag, out byte transparentColorIndex)
 		{
-			var colorTable = new List<Color32>();
-
 			transparentColorFlag = 0;
 
-			foreach (var frame in Frames)
-			{
-				colorTable.AddRange(frame.Texture.GetPixels32());
-			}
-
-			colorTable = colorTable.Distinct().ToList();
+			var colorTable = Frames.SelectMany(i => i.Texture.GetPixels32().Distinct()).Distinct().ToList();
 
 			if (colorTable.Count > 256) throw new NotSupportedException("Global color table exceeds size limit 256! Please consider using max 256 colors for all image frames.");
 
@@ -112,12 +105,9 @@ namespace SimpleGif
 			{
 				if (colorTable[i].A == 0)
 				{
+					colorTable[i] = GetTransparentColor(colorTable);
 					transparentColorFlag = 1;
-					transparentColorIndex = 0;
-
-					var transparentColor = GetTransparentColor(colorTable);
-
-					colorTable.Insert(0, transparentColor);
+					transparentColorIndex = (byte) i;
 
 					break;
 				}
