@@ -1,4 +1,4 @@
-# SimpleGif
+# Simple GIF
 Simple GIF is pure implementation of GIF based on GIF89a Specification.
 
 Simple GIF is cross-platform library. It doesn't use Windows system libs (like System.Drawing and System.Windows.Media) or any 3rd-party components.
