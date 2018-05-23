@@ -68,7 +68,7 @@ namespace SimpleGif
 
 			bytes.AddRange(Encoding.UTF8.GetBytes(header));
 			bytes.AddRange(logicalScreenDescriptor.GetBytes());
-			bytes.AddRange(ColorTableToBytes(globalColorTable));
+			bytes.AddRange(ColorTableToBytes(globalColorTable, globalColorTableSize));
 			bytes.AddRange(applicationExtension.GetBytes());
 
 			foreach (var frame in Frames)
@@ -147,11 +147,12 @@ namespace SimpleGif
 			throw new Exception("Unable to resolve transparent color!");
 		}
 
-		private byte[] ColorTableToBytes(List<Color32> colorTable)
+		private static byte[] ColorTableToBytes(List<Color32> colorTable, byte colorTableSize)
 		{
 			if (colorTable.Count > 256) throw new Exception("Color table size exceeds 256 size limit: " + colorTable.Count);
 
-			var bytes = new byte[3 * colorTable.Count];
+			var size = 1 << (colorTableSize + 1);
+			var bytes = new byte[3 * size];
 
 			for (var i = 0; i < colorTable.Count; i++)
 			{
