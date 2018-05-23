@@ -11,21 +11,41 @@ namespace SimpleGif.GifCore
 			public static int[] Decode(byte[] bytes, int minCodeSize)
 			{
 				var bits = new BitArray(bytes);
-				var colorIndexes = new List<int>();
-				var dict = InitializeDictionary(minCodeSize);
-				var endOfInformation = (1 << minCodeSize) + 1;
+				var clearCode = 1 << minCodeSize;
+				var endOfInformation = clearCode + 1;
 				var codeSize = minCodeSize + 1;
+				Dictionary<int, List<int>> dict;
+				int value;
+				var colorIndexes = new List<int>();
 				var index = codeSize;
+				List<int> prev;
 
-				List<int> prev = null;
+				void Clear()
+				{
+					codeSize = minCodeSize + 1;
+					dict = InitializeDictionary(minCodeSize);
+					value = ReadBits(bits, codeSize, ref index);
+					colorIndexes.AddRange(prev = dict[value]);
+				}
+
+				Clear();
 
 				while (index + codeSize <= bits.Length)
 				{
-					var value = ReadBits(bits, codeSize, ref index);
+					value = ReadBits(bits, codeSize, ref index);
 
-					if (value == endOfInformation) break;
+					if (value == clearCode)
+					{
+						Clear();
+						continue;
+					}
 
-					if (prev != null && dict.Count < 4096)
+					if (value == endOfInformation)
+					{
+						break;
+					}
+
+					if (dict.Count < 4096)
 					{
 						var code = prev.ToList();
 
@@ -40,18 +60,13 @@ namespace SimpleGif.GifCore
 							dict.Add(value, code);
 						}
 
-						if (dict.Count == 1 << codeSize)
+						if (dict.Count == 1 << codeSize && codeSize < 12)
 						{
 							codeSize++;
 						}
 					}
 
-					prev = dict[value];
-
-					foreach (var colorIndex in dict[value])
-					{
-						colorIndexes.Add(colorIndex);
-					}
+					colorIndexes.AddRange(prev = dict[value]);
 				}
 
 				return colorIndexes.ToArray();

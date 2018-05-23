@@ -35,7 +35,7 @@ namespace SimpleGif
 				if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
 				var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
-				var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
+				var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 				var extension = j > 0 ? blocks[j - 1] as GraphicControlExtension : null;
 				var pixels = ParsePixels(data, extension, width, height, frames, backgroundColor, imageDescriptor, colorTable);
 				var texture = new Texture2D(width, height);
@@ -103,7 +103,7 @@ namespace SimpleGif
 
 			colorTable = colorTable.Distinct().ToList();
 
-			if (colorTable.Count > 0xFF) throw new NotSupportedException("Global color table exceeds size limit 255! Please consider using max 255 colors for all image frames.");
+			if (colorTable.Count > 256) throw new NotSupportedException("Global color table exceeds size limit 256! Please consider using max 256 colors for all image frames.");
 
 			transparentColorFlag = 0;
 			transparentColorIndex = 0;
