@@ -1,0 +1,2 @@
+# SimpleGif
+Simple GIF library
