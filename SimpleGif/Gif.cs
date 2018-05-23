@@ -25,8 +25,8 @@ namespace SimpleGif
 			var blocks = parser.Blocks;
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
-			var globalColorTable = GetUnityColors(parser.GlobalColorTable);
-			var backgroundColor = globalColorTable[parser.LogicalScreenDescriptor.BackgroundColorIndex];
+			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
+			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? new Color32();
 
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
@@ -34,7 +34,7 @@ namespace SimpleGif
 
 				if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
-				var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable)blocks[j + 1]) : globalColorTable;
+				var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
 				var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 				var extension = j > 0 ? blocks[j - 1] as GraphicControlExtension : null;
 				var pixels = ParsePixels(data, extension, width, height, frames, backgroundColor, imageDescriptor, colorTable);

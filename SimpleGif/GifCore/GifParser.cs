@@ -21,11 +21,13 @@ namespace SimpleGif.GifCore
 
 			Header = Encoding.UTF8.GetString(bytes, 0, 6);
 			LogicalScreenDescriptor = new LogicalScreenDescriptor(bytes, ref index);
-			GlobalColorTable = new ColorTable(LogicalScreenDescriptor.GlobalColorTableSize, bytes, ref index);
-			Blocks = ReadBlocks(bytes, ref index);
 
-			//Console.WriteLine("{0} {1}x{2} px image", Header, LogicalScreenDescriptor.LogicalScreenWidth, LogicalScreenDescriptor.LogicalScreenHeight);
-			//Console.WriteLine("Blocks found: {0}, image blocks: {1}", Blocks.Count, Blocks.Count(i => i is ImageDescriptor));
+			if (LogicalScreenDescriptor.GlobalColorTableFlag == 1)
+			{
+				GlobalColorTable = new ColorTable(LogicalScreenDescriptor.GlobalColorTableSize, bytes, ref index);
+			}
+
+			Blocks = ReadBlocks(bytes, ref index);
 		}
 
 		private static List<Block> ReadBlocks(byte[] bytes, ref int startIndex)
