@@ -2,7 +2,7 @@
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public class CommentExtension : Block
+	internal class CommentExtension : Block
 	{
 		public byte[] CommentData;
 

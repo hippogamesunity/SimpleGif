@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SimpleGif.GifCore
 {
-	public class LogicalScreenDescriptor
+	internal class LogicalScreenDescriptor
 	{
 		public ushort LogicalScreenWidth;
 		public ushort LogicalScreenHeight;

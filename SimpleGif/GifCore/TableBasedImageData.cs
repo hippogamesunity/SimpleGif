@@ -3,15 +3,15 @@ using SimpleGif.GifCore.Blocks;
 
 namespace SimpleGif.GifCore
 {
-	public class TableBasedImageData : Block
+	internal class TableBasedImageData : Block
 	{
-		public byte LZWMinimumCodeSize;
+		public byte LzwMinimumCodeSize;
 		public byte[] ImageData;
 		public byte BlockTerminator;
 
 		public TableBasedImageData(byte[] bytes, ref int index)
 		{
-			LZWMinimumCodeSize = bytes[index++];
+			LzwMinimumCodeSize = bytes[index++];
 			ImageData = ReadDataSubBlocks(bytes, ref index);
 			BlockTerminator = bytes[index++];
 
@@ -20,7 +20,7 @@ namespace SimpleGif.GifCore
 
 		public TableBasedImageData(byte minCodeSize, byte[] imageData)
 		{
-			LZWMinimumCodeSize = minCodeSize;
+			LzwMinimumCodeSize = minCodeSize;
 			ImageData = imageData;
 		}
 
@@ -30,7 +30,7 @@ namespace SimpleGif.GifCore
 			var i = 0;
 			var j = 0;
 
-			bytes[0] = LZWMinimumCodeSize;
+			bytes[0] = LzwMinimumCodeSize;
 			j++;
 
 			while (i < ImageData.Length)

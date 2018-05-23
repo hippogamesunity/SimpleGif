@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace SimpleGif.GifCore
 {
-	public static class LzwEncoder
+	internal static class LzwEncoder
 	{
 		public static byte GetCodeSize(int[] colorIndexes)
 		{

@@ -2,7 +2,7 @@
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public class PlainTextExtension : Block
+	internal class PlainTextExtension : Block
 	{
 		public byte BlockSize;
 		public ushort TextGridLeftPosition;

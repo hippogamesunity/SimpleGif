@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public class GraphicControlExtension : Block
+	internal class GraphicControlExtension : Block
 	{
 		public byte BlockSize;
 		public byte Reserved;

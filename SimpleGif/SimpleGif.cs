@@ -30,9 +30,7 @@ namespace SimpleGif
 
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
-				var imageDescriptor = blocks[j] as ImageDescriptor;
-
-				if (imageDescriptor == null) continue;
+				if (!(blocks[j] is ImageDescriptor imageDescriptor)) continue;
 
 				if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
@@ -48,7 +46,7 @@ namespace SimpleGif
 				var frame = new GifFrame
 				{
 					Texture = texture,
-					Delay = extension == null ? 0 : extension.DelayTime / 100f
+					Delay = extension?.DelayTime / 100f ?? 0
 				};
 
 				frames.Add(frame);
@@ -62,9 +60,7 @@ namespace SimpleGif
 			const string header = "GIF89a";
 			var imageWidth = (ushort)Frames[0].Texture.Width;
 			var imageHeight = (ushort)Frames[0].Texture.Height;
-			byte transparentColorFlag;
-			byte transparentColorIndex;
-			var globalColorTable = GetColorTable(out transparentColorFlag, out transparentColorIndex);
+			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
 			var globalColorTableSize = GetColorTableSize(globalColorTable);
 			var logicalScreenDescriptor = new LogicalScreenDescriptor(imageWidth, imageHeight, 1, 7, 0, globalColorTableSize, 0, 0);
 			var applicationExtension = new ApplicationExtension();
@@ -208,7 +204,7 @@ namespace SimpleGif
 
 		private static Color32[] ParsePixels(TableBasedImageData data, GraphicControlExtension extension, int width, int height, List<GifFrame> frames, Color32 backgroundColor, ImageDescriptor imageDescriptor, Color32[] colors)
 		{
-			var decmpressed = LzwDecoder.Decode(data.ImageData, data.LZWMinimumCodeSize);
+			var decmpressed = LzwDecoder.Decode(data.ImageData, data.LzwMinimumCodeSize);
 			var pixels = new Color32[width * height];
 			var clear = new Color32(0, 0, 0, 0);
 
@@ -231,7 +227,7 @@ namespace SimpleGif
 						}
 						break;
 					default:
-						throw new NotSupportedException(string.Format("Unknown method: {0}!", extension.DisposalMethod));
+						throw new NotSupportedException($"Unknown method: {extension.DisposalMethod}!");
 				}
 			}
 

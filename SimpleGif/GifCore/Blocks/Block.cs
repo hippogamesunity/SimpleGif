@@ -2,7 +2,7 @@
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public abstract class Block
+	internal abstract class Block
 	{
 		public const byte ExtensionIntroducer = 0x21;
 		public const byte PlainTextExtensionLabel = 0x1;

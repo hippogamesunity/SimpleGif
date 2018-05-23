@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public class ImageDescriptor : Block
+	internal class ImageDescriptor : Block
 	{
 		public ushort ImageLeftPosition;
 		public ushort ImageTopPosition;

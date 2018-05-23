@@ -1,7 +1,7 @@
 ﻿namespace SimpleGif.Structures
 {
 	/// <summary>
-	/// Stab for Color32 from UnityEngine.CoreModule
+	/// Stub for Color32 from UnityEngine.CoreModule
 	/// </summary>
 	public struct Color32
 	{
@@ -35,7 +35,7 @@
 
 		public override bool Equals(object obj)
 		{
-			if (ReferenceEquals(null, obj)) return false;
+			if (obj is null) return false;
 
 			return obj is Color32 && Equals((Color32) obj);
 		}

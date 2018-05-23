@@ -1,7 +1,7 @@
 ﻿namespace SimpleGif.Structures
 {
 	/// <summary>
-	/// Stab for Texture2D from UnityEngine.CoreModule
+	/// Stub for Texture2D from UnityEngine.CoreModule
 	/// </summary>
 	public class Texture2D
 	{

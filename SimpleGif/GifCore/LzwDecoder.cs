@@ -6,7 +6,7 @@ namespace SimpleGif.GifCore
 {
 	namespace Assets.GifCore
 	{
-		public static class LzwDecoder
+		internal static class LzwDecoder
 		{
 			public static int[] Decode(byte[] bytes, int minCodeSize)
 			{

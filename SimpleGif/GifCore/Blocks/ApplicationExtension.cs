@@ -2,7 +2,7 @@
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public class ApplicationExtension : Block
+	internal class ApplicationExtension : Block
 	{
 		public byte BlockSize;
 		public byte[] ApplicationIdentifier;

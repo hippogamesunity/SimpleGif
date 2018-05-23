@@ -8,7 +8,7 @@ namespace SimpleGif.GifCore
 	/// <summary>
 	/// Gif specs: https://www.w3.org/Graphics/GIF/spec-gif89a.txt
 	/// </summary>
-	public class GifParser
+	internal class GifParser
 	{
 		public string Header;
 		public LogicalScreenDescriptor LogicalScreenDescriptor;

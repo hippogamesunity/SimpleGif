@@ -2,7 +2,7 @@
 
 namespace SimpleGif.GifCore.Blocks
 {
-	public class ColorTable : Block
+	internal class ColorTable : Block
 	{
 		public byte[] Bytes;
 

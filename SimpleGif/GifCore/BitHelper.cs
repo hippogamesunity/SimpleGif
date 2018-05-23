@@ -2,7 +2,7 @@
 
 namespace SimpleGif.GifCore
 {
-	public class BitHelper
+	internal class BitHelper
 	{
 		public static byte[] ReadBytes(byte[] bytes, int length, ref int index)
 		{
