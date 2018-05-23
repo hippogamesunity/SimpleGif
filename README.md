@@ -13,7 +13,7 @@ Usage example:
 - var gif = new Gif(List<GifFrame> frames) will create GIF from image list
 - gif.GetBytes() will return binary ready to be displayed or written on disk
 - gif.Frames contains frame list
-- each frame Texture and Delay
+- each frame has Texture and Delay
 - Texture is just abstract Color32 array (Color32 structure has RGBA byte values)
 - Delay is frame delay in milliseconds
   
