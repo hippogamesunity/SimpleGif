@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleGif", "SimpleGif\SimpleGif.csproj", "{38490E3B-2761-4AB9-9C93-219FB51CF586}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{860EE6A0-3356-4A43-8FA3-7BFCAF93DE86}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{38490E3B-2761-4AB9-9C93-219FB51CF586}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{38490E3B-2761-4AB9-9C93-219FB51CF586}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{38490E3B-2761-4AB9-9C93-219FB51CF586}.Release|Any CPU.Build.0 = Release|Any CPU
+		{860EE6A0-3356-4A43-8FA3-7BFCAF93DE86}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{860EE6A0-3356-4A43-8FA3-7BFCAF93DE86}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{860EE6A0-3356-4A43-8FA3-7BFCAF93DE86}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{860EE6A0-3356-4A43-8FA3-7BFCAF93DE86}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

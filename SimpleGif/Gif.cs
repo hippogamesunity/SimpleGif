@@ -9,16 +9,16 @@ using SimpleGif.Structures;
 
 namespace SimpleGif
 {
-	public class SimpleGif
+	public class Gif
 	{
 		public List<GifFrame> Frames;
 
-		public SimpleGif(List<GifFrame> frames)
+		public Gif(List<GifFrame> frames)
 		{
 			Frames = frames;
 		}
 
-		public static SimpleGif FromBytes(byte[] bytes)
+		public static Gif FromBytes(byte[] bytes)
 		{
 			var frames = new List<GifFrame>();
 			var parser = new GifParser(bytes);
@@ -52,7 +52,7 @@ namespace SimpleGif
 				frames.Add(frame);
 			}
 
-			return new SimpleGif(frames);
+			return new Gif(frames);
 		}
 
 		public byte[] GetBytes()

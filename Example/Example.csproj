@@ -4,16 +4,17 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{38490E3B-2761-4AB9-9C93-219FB51CF586}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SimpleGif</RootNamespace>
-    <AssemblyName>SimpleGif</AssemblyName>
+    <ProjectGuid>{860EE6A0-3356-4A43-8FA3-7BFCAF93DE86}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Example</RootNamespace>
+    <AssemblyName>Example</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
@@ -21,16 +22,15 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -43,27 +43,22 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Structures\Color32.cs" />
-    <Compile Include="GifFrame.cs" />
-    <Compile Include="GifCore\BitHelper.cs" />
-    <Compile Include="GifCore\Blocks\ApplicationExtension.cs" />
-    <Compile Include="GifCore\Blocks\Block.cs" />
-    <Compile Include="GifCore\Blocks\ColorTable.cs" />
-    <Compile Include="GifCore\Blocks\CommentExtension.cs" />
-    <Compile Include="GifCore\Blocks\GraphicControlExtension.cs" />
-    <Compile Include="GifCore\Blocks\ImageDescriptor.cs" />
-    <Compile Include="GifCore\Blocks\PlainTextExtension.cs" />
-    <Compile Include="GifCore\GifParser.cs" />
-    <Compile Include="GifCore\LogicalScreenDescriptor.cs" />
-    <Compile Include="GifCore\LzwDecoder.cs" />
-    <Compile Include="GifCore\LzwEncoder.cs" />
-    <Compile Include="GifCore\TableBasedImageData.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Gif.cs" />
-    <Compile Include="Structures\Texture2D.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="GifCore\spec-gif89a.txt" />
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleGif\SimpleGif.csproj">
+      <Project>{38490e3b-2761-4ab9-9c93-219fb51cf586}</Project>
+      <Name>SimpleGif</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Pacman.gif">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
