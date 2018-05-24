@@ -1,19 +1,22 @@
-﻿namespace SimpleGif.Structures
+﻿namespace SimpleGif.Data
 {
 	/// <summary>
 	/// Stub for Texture2D from UnityEngine.CoreModule
 	/// </summary>
 	public class Texture2D
 	{
-		private Color32[] _pixels;
+		// ReSharper disable once InconsistentNaming (original naming saved)
+		public readonly int width;
 
-		public int Width { get; }
-		public int Height { get; }
+		// ReSharper disable once InconsistentNaming (original naming saved)
+		public readonly int height;
+		
+		private Color32[] _pixels;
 
 		public Texture2D(int width, int height)
 		{
-			Width = width;
-			Height = height;
+			this.width = width;
+			this.height = height;
 		}
 
 		public void SetPixels32(Color32[] pixels)

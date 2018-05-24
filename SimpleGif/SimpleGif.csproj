@@ -36,8 +36,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Structures\Color32.cs" />
-    <Compile Include="GifFrame.cs" />
+    <Compile Include="Data\Color32.cs" />
+    <Compile Include="Data\GifFrame.cs" />
+    <Compile Include="Enums\DisposalMethod.cs" />
     <Compile Include="GifCore\BitHelper.cs" />
     <Compile Include="GifCore\Blocks\ApplicationExtension.cs" />
     <Compile Include="GifCore\Blocks\Block.cs" />
@@ -53,7 +54,7 @@
     <Compile Include="GifCore\TableBasedImageData.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Gif.cs" />
-    <Compile Include="Structures\Texture2D.cs" />
+    <Compile Include="Data\Texture2D.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="GifCore\spec-gif89a.txt" />

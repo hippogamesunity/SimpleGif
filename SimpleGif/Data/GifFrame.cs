@@ -1,6 +1,6 @@
-﻿using SimpleGif.Structures;
+﻿using SimpleGif.Enums;
 
-namespace SimpleGif
+namespace SimpleGif.Data
 {
 	/// <summary>
 	/// Texture + delay
@@ -9,5 +9,6 @@ namespace SimpleGif
 	{
 		public Texture2D Texture;
 		public float Delay;
+		public DisposalMethod DisposalMethod = DisposalMethod.RestoreToBackgroundColor;
 	}
 }

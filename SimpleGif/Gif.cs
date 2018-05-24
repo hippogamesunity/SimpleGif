@@ -2,23 +2,36 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using SimpleGif.Data;
 using SimpleGif.GifCore;
 using SimpleGif.GifCore.Assets.GifCore;
 using SimpleGif.GifCore.Blocks;
-using SimpleGif.Structures;
 
 namespace SimpleGif
 {
+	/// <summary>
+	/// Simple class for working with GIF format
+	/// </summary>
 	public class Gif
 	{
+		/// <summary>
+		/// List of GIF frames
+		/// </summary>
 		public List<GifFrame> Frames;
 
+		/// <summary>
+		/// Create a new instance from GIF frames.
+		/// </summary>
 		public Gif(List<GifFrame> frames)
 		{
 			Frames = frames;
 		}
 
-		public static Gif FromBytes(byte[] bytes)
+		/// <summary>
+		/// Decode byte array and return a new instance.
+		/// </summary>
+		/// <returns></returns>
+		public static Gif Decode(byte[] bytes)
 		{
 			var frames = new List<GifFrame>();
 			var parser = new GifParser(bytes);
@@ -55,11 +68,14 @@ namespace SimpleGif
 			return new Gif(frames);
 		}
 
-		public byte[] GetBytes()
+		/// <summary>
+		/// Encode all frames to byte array
+		/// </summary>
+		public byte[] Encode()
 		{
 			const string header = "GIF89a";
-			var imageWidth = (ushort)Frames[0].Texture.Width;
-			var imageHeight = (ushort)Frames[0].Texture.Height;
+			var imageWidth = (ushort)Frames[0].Texture.width;
+			var imageHeight = (ushort)Frames[0].Texture.height;
 			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
 			var globalColorTableSize = GetColorTableSize(globalColorTable);
 			var logicalScreenDescriptor = new LogicalScreenDescriptor(imageWidth, imageHeight, 1, 7, 0, globalColorTableSize, 0, 0);
@@ -73,7 +89,7 @@ namespace SimpleGif
 
 			foreach (var frame in Frames)
 			{
-				var graphicControlExtension = new GraphicControlExtension(4, 0, 2, 0, transparentColorFlag, (ushort)(100 * frame.Delay), transparentColorIndex);
+				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort)(100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, imageWidth, imageHeight, 0, 0, 0, 0, 0);
 				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex);
 				var minCodeSize = LzwEncoder.GetCodeSize(colorIndexes);
@@ -171,21 +187,21 @@ namespace SimpleGif
 			var pixels = texture.GetPixels32();
 			var colorIndexes = new int[pixels.Length];
 
-			for (var y = 0; y < texture.Height; y++)
+			for (var y = 0; y < texture.height; y++)
 			{
-				for (var x = 0; x < texture.Width; x++)
+				for (var x = 0; x < texture.width; x++)
 				{
-					var pixel = pixels[x + (texture.Height - y - 1) * texture.Width];
+					var pixel = pixels[x + (texture.height - y - 1) * texture.width];
 
 					if (transparentColorFlag == 1 && pixel.A == 0)
 					{
-						colorIndexes[x + y * texture.Width] = transparentColorIndex;
+						colorIndexes[x + y * texture.width] = transparentColorIndex;
 					}
 					else
 					{
-						colorIndexes[x + y * texture.Width] = colorTable.IndexOf(pixel);
+						colorIndexes[x + y * texture.width] = colorTable.IndexOf(pixel);
 
-						if (colorIndexes[x + y * texture.Width] == -1) throw new Exception("Color index not found: " + pixel);
+						if (colorIndexes[x + y * texture.width] == -1) throw new Exception("Color index not found: " + pixel);
 					}
 				}
 			}
