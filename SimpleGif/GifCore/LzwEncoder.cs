@@ -7,17 +7,19 @@ namespace SimpleGif.GifCore
 {
 	internal static class LzwEncoder
 	{
-		public static byte GetCodeSize(int[] colorIndexes)
+		public static byte GetMinCodeSize(int[] colorIndexes)
 		{
-			byte codeSize = 0;
+			byte minCodeSize = 0;
 			var max = colorIndexes.Max();
 
-			while (1 << codeSize <= max)
+			while (1 << minCodeSize < max)
 			{
-				codeSize++;
+				minCodeSize++;
 			}
 
-			return codeSize;
+			if (minCodeSize == 0) minCodeSize = 1;
+
+			return minCodeSize;
 		}
 
 		public static byte[] Encode(int[] colorIndexes, int minCodeSize)
@@ -28,8 +30,6 @@ namespace SimpleGif.GifCore
 			var code = colorIndexes[0].ToString();
 			var codeSize = minCodeSize + 1;
 			var bits = new List<bool>();
-
-			if (codeSize == 1) codeSize = 2;
 
 			ReadBits(clearCode, codeSize, ref bits);
 
