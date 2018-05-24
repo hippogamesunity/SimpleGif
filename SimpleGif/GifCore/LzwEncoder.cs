@@ -29,6 +29,8 @@ namespace SimpleGif.GifCore
 			var codeSize = minCodeSize + 1;
 			var bits = new List<bool>();
 
+			if (codeSize == 1) codeSize = 2;
+
 			ReadBits(clearCode, codeSize, ref bits);
 
 			for (var i = 1; i < colorIndexes.Length; i++)

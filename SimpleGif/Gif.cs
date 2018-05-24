@@ -73,8 +73,8 @@ namespace SimpleGif
 		public byte[] Encode()
 		{
 			const string header = "GIF89a";
-			var imageWidth = (ushort)Frames[0].Texture.width;
-			var imageHeight = (ushort)Frames[0].Texture.height;
+			var imageWidth = (ushort) Frames[0].Texture.width;
+			var imageHeight = (ushort) Frames[0].Texture.height;
 			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
 			var globalColorTableSize = GetColorTableSize(globalColorTable);
 			var logicalScreenDescriptor = new LogicalScreenDescriptor(imageWidth, imageHeight, 1, 7, 0, globalColorTableSize, 0, 0);
