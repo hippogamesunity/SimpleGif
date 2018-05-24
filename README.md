@@ -12,9 +12,9 @@ Requirements:
 - set target platform .NET Framework 3.5 if you want to use this lib with Unity
 
 Usage example:
-- var gif = Gif.FromBytes(byte[] bytes) will load GIF from binary
+- var gif = Gif.Decode(byte[] bytes) will load GIF from binary
 - var gif = new Gif(List<GifFrame> frames) will create GIF from image list
-- gif.GetBytes() will return binary ready to be displayed or written on disk
+- gif.Encode() will return binary ready to be displayed or written on disk
 - gif.Frames contains frame list
 - each frame has Texture and Delay
 - Texture is just abstract Color32 array (Color32 structure has RGBA byte values)
