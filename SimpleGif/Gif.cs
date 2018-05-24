@@ -30,7 +30,6 @@ namespace SimpleGif
 		/// <summary>
 		/// Decode byte array and return a new instance.
 		/// </summary>
-		/// <returns></returns>
 		public static Gif Decode(byte[] bytes)
 		{
 			var frames = new List<GifFrame>();
