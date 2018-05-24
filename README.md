@@ -37,7 +37,7 @@ GIF89a Specification
 - https://www.w3.org/Graphics/GIF/spec-gif89a.txt
 
 Feedback, questions, bugs:
-- please navigate to Issues section!
+- https://github.com/hippogamesunity/SimpleGif/issues
 
 Contact me:
 - hippogamesunity@gmail.com
