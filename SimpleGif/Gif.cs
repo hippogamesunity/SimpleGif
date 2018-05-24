@@ -118,7 +118,7 @@ namespace SimpleGif
 
 			for (var i = 0; i < colorTable.Count; i++)
 			{
-				if (colorTable[i].A == 0)
+				if (colorTable[i].a == 0)
 				{
 					colorTable[i] = GetTransparentColor(colorTable);
 					transparentColorFlag = 1;
@@ -161,9 +161,9 @@ namespace SimpleGif
 
 			for (var i = 0; i < colorTable.Count; i++)
 			{
-				bytes[3 * i] = colorTable[i].R;
-				bytes[3 * i + 1] = colorTable[i].G;
-				bytes[3 * i + 2] = colorTable[i].B;
+				bytes[3 * i] = colorTable[i].r;
+				bytes[3 * i + 1] = colorTable[i].g;
+				bytes[3 * i + 2] = colorTable[i].b;
 			}
 
 			return bytes;
@@ -192,7 +192,7 @@ namespace SimpleGif
 				{
 					var pixel = pixels[x + (texture.height - y - 1) * texture.width];
 
-					if (transparentColorFlag == 1 && pixel.A == 0)
+					if (transparentColorFlag == 1 && pixel.a == 0)
 					{
 						colorIndexes[x + y * texture.width] = transparentColorIndex;
 					}

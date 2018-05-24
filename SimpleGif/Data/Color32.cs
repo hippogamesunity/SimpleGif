@@ -5,22 +5,24 @@
 	/// </summary>
 	public struct Color32
 	{
-		public readonly byte R;
-		public readonly byte G;
-		public readonly byte B;
-		public readonly byte A;
+		// ReSharper disable InconsistentNaming (original naming saved)
+		public readonly byte r;
+		public readonly byte g;
+		public readonly byte b;
+		public readonly byte a;
+		// ReSharper restore InconsistentNaming
 
 		public Color32(byte r, byte g, byte b, byte a)
 		{
-			R = r;
-			G = g;
-			B = b;
-			A = a;
+			this.r = r;
+			this.g = g;
+			this.b = b;
+			this.a = a;
 		}
 
 		public bool Equals(Color32 other)
 		{
-			return R == other.R && G == other.G && B == other.B && A == other.A;
+			return r == other.r && g == other.g && b == other.b && a == other.a;
 		}
 	}
 }

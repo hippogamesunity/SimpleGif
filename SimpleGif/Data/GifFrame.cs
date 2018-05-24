@@ -3,7 +3,7 @@
 namespace SimpleGif.Data
 {
 	/// <summary>
-	/// Texture + delay
+	/// Texture + delay + disposal method
 	/// </summary>
 	public class GifFrame
 	{
