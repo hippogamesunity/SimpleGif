@@ -9,15 +9,13 @@ namespace SimpleGif.GifCore
 	{
 		public static byte GetMinCodeSize(int[] colorIndexes)
 		{
-			byte minCodeSize = 0;
+			byte minCodeSize = 2;
 			var max = colorIndexes.Max();
 
-			while (1 << minCodeSize <= max)
+			while (1 << (minCodeSize + 1) <= max)
 			{
 				minCodeSize++;
 			}
-
-			if (minCodeSize < 2) minCodeSize = 2;
 
 			return minCodeSize;
 		}
