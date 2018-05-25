@@ -28,7 +28,7 @@ namespace SimpleGif.Data
 
 		public Color32[] GetPixels32()
 		{
-			return _pixels;
+			return _pixels.ToArray();
 		}
 
 		public void Apply()

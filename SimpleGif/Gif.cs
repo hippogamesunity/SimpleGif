@@ -39,6 +39,7 @@ namespace SimpleGif
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
 			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? new Color32();
+			var state = new Color32[width * height];
 
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
@@ -46,10 +47,11 @@ namespace SimpleGif
 
 				if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
+				var extension = j > 0 ? blocks[j - 1] as GraphicControlExtension : null;
+				var disposal = extension?.DisposalMethod ?? 0;
 				var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
 				var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
-				var extension = j > 0 ? blocks[j - 1] as GraphicControlExtension : null;
-				var pixels = ParsePixels(data, extension, width, height, frames, backgroundColor, imageDescriptor, colorTable);
+				var pixels = DecodeFrame(extension, imageDescriptor, data, width, height, disposal == 3 ? state.ToArray() : state, colorTable);
 				var texture = new Texture2D(width, height);
 
 				texture.SetPixels32(pixels);
@@ -62,6 +64,23 @@ namespace SimpleGif
 				};
 
 				frames.Add(frame);
+
+				switch (disposal)
+				{
+					case 0:
+					case 1:
+						break;
+					case 2:
+						for (var i = 0; i < state.Length; i++)
+						{
+							state[i] = backgroundColor;
+						}
+						break;
+					case 3:
+						break; // 'state' was copied before decoding frame
+					default:
+						throw new NotSupportedException($"Unknown method: {disposal}!");
+				}
 			}
 
 			return new Gif(frames);
@@ -73,11 +92,11 @@ namespace SimpleGif
 		public byte[] Encode()
 		{
 			const string header = "GIF89a";
-			var imageWidth = (ushort) Frames[0].Texture.width;
-			var imageHeight = (ushort) Frames[0].Texture.height;
+			var width = (ushort) Frames[0].Texture.width;
+			var height = (ushort) Frames[0].Texture.height;
 			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
 			var globalColorTableSize = GetColorTableSize(globalColorTable);
-			var logicalScreenDescriptor = new LogicalScreenDescriptor(imageWidth, imageHeight, 1, 7, 0, globalColorTableSize, 0, 0);
+			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
 			var applicationExtension = new ApplicationExtension();
 			var bytes = new List<byte>();
 
@@ -89,7 +108,7 @@ namespace SimpleGif
 			foreach (var frame in Frames)
 			{
 				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
-				var imageDescriptor = new ImageDescriptor(0, 0, imageWidth, imageHeight, 0, 0, 0, 0, 0);
+				var imageDescriptor = new ImageDescriptor(0, 0, width, height, 0, 0, 0, 0, 0);
 				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
@@ -208,51 +227,26 @@ namespace SimpleGif
 			return colorIndexes;
 		}
 
-		private static Color32[] ParsePixels(TableBasedImageData data, GraphicControlExtension extension, int width, int height, List<GifFrame> frames, Color32 backgroundColor, ImageDescriptor imageDescriptor, Color32[] colors)
+		private static Color32[] DecodeFrame(GraphicControlExtension extension, ImageDescriptor imageDescriptor, TableBasedImageData data, int width, int height, Color32[] state, Color32[] colorTable)
 		{
 			var decmpressed = LzwDecoder.Decode(data.ImageData, data.LzwMinimumCodeSize);
-			var pixels = new Color32[width * height];
-			var clear = new Color32(0, 0, 0, 0);
-
-			if (extension != null)
-			{
-				switch (extension.DisposalMethod)
-				{
-					case 0:
-					case 1:
-					case 3:
-						if (frames.Any())
-						{
-							pixels = frames.Last().Texture.GetPixels32();
-						}
-						break;
-					case 2:
-						for (var i = 0; i < pixels.Length; i++)
-						{
-							pixels[i] = backgroundColor;
-						}
-						break;
-					default:
-						throw new NotSupportedException($"Unknown method: {extension.DisposalMethod}!");
-				}
-			}
+			var transparency = extension != null && extension.TransparentColorFlag == 1;
+			var clear = new Color32();
 
 			for (var y = 0; y < imageDescriptor.ImageHeight; y++)
 			{
 				for (var x = 0; x < imageDescriptor.ImageWidth; x++)
 				{
 					var colorIndex = decmpressed[x + y * imageDescriptor.ImageWidth];
-					var transparent = extension != null && extension.TransparentColorFlag == 1 && colorIndex == extension.TransparentColorIndex;
+					var color = transparency && colorIndex == extension.TransparentColorIndex ? clear : colorTable[colorIndex];
 					var fx = x + imageDescriptor.ImageLeftPosition;
 					var fy = height - y - 1 - imageDescriptor.ImageTopPosition; // Y-flip
 
-					if (extension != null && extension.DisposalMethod == 3 && transparent) continue;
-
-					pixels[fx + fy * width] = transparent ? clear : colors[colorIndex];
+					state[fx + fy * width] = state[fx + fy * width] = color;
 				}
 			}
-
-			return pixels;
+			
+			return state;
 		}
 
 		private static Color32[] GetUnityColors(ColorTable table)
