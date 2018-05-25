@@ -88,7 +88,7 @@ namespace SimpleGif
 
 			foreach (var frame in Frames)
 			{
-				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort)(100 * frame.Delay), transparentColorIndex);
+				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, imageWidth, imageHeight, 0, 0, 0, 0, 0);
 				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);

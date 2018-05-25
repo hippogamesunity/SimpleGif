@@ -1,4 +1,6 @@
-﻿namespace SimpleGif.Data
+﻿using System.Linq;
+
+namespace SimpleGif.Data
 {
 	/// <summary>
 	/// Stub for Texture2D from UnityEngine.CoreModule
@@ -21,7 +23,7 @@
 
 		public void SetPixels32(Color32[] pixels)
 		{
-			_pixels = pixels;
+			_pixels = pixels.ToArray();
 		}
 
 		public Color32[] GetPixels32()
