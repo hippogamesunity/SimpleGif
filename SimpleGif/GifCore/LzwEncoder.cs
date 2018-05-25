@@ -9,10 +9,10 @@ namespace SimpleGif.GifCore
 	{
 		public static byte GetMinCodeSize(int[] colorIndexes)
 		{
-			byte minCodeSize = 1;
+			byte minCodeSize = 2;
 			var max = colorIndexes.Max();
 
-			while (1 << (minCodeSize + 1) <= max)
+			while (1 << minCodeSize <= max)
 			{
 				minCodeSize++;
 			}
@@ -28,8 +28,6 @@ namespace SimpleGif.GifCore
 			var code = colorIndexes[0].ToString();
 			var codeSize = minCodeSize + 1;
 			var bits = new List<bool>();
-
-			//if (codeSize == 1) codeSize = 2;
 
 			ReadBits(clearCode, codeSize, ref bits);
 
