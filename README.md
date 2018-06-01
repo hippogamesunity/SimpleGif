@@ -20,14 +20,18 @@ Requirements:
 - set target platform .NET Framework 3.5 if you want to use this lib with Unity
 
 Usage example:
-- var gif = Gif.Decode(byte[] bytes) will load GIF from binary
-- var gif = new Gif(List<GifFrame> frames) will create GIF from image list
-- gif.Encode() will return binary ready to be displayed or written on disk
+- var gif = Gif.Decode(byte[] bytes); will load GIF from binary
+- var gif = new Gif(List<GifFrame> frames); will create GIF from image list
+- gif.Encode(); will return binary ready to be displayed or written on disk
 - gif.Frames contains frame list
 - each frame has Texture and Delay
 - Texture is just abstract Color32 array (Color32 structure has RGBA byte values)
 - Delay is frame delay in milliseconds
-  
+
+Advanced usage example:
+- var iterator = Gif.DecodeIterator(bytes); will return iterator so you can display progress bar for large files
+- var iterator = gif.EncodeIterator(); will return iterator so you can display progress bar for large files
+
 Nodes:
 - Texture2D and Color32 stubs were introduced to avoid referencing Unity libraries. Thus, this lib can be used outside of Unity =)
 - Texture2D is a stub for Unity Texture2D (UnityEngine.CoreModule)
