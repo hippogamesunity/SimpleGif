@@ -99,7 +99,7 @@ namespace SimpleGif
 		/// <summary>
 		/// Get frame count. Can be used with DecodeIterator to display progress bar.
 		/// </summary>
-		public int GetFrameCount(byte[] bytes)
+		public static int GetFrameCount(byte[] bytes)
 		{
 			var parser = new GifParser(bytes);
 
