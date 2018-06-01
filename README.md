@@ -29,8 +29,8 @@ Usage example:
 - Delay is frame delay in milliseconds
 
 Advanced usage example:
-- var parts = Gif.DecodeIterator(bytes); will return iterator so you can display progress bar for large files
-- var parts = gif.EncodeIterator(); will return iterator so you can display progress bar for large files
+- var iterator = Gif.DecodeIterator(bytes); will return iterator so you can display progress bar for large files
+- var iterator = gif.EncodeIterator(); will return iterator so you can display progress bar for large files
 
 Nodes:
 - Texture2D and Color32 stubs were introduced to avoid referencing Unity libraries. Thus, this lib can be used outside of Unity =)
