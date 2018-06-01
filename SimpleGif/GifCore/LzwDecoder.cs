@@ -84,7 +84,7 @@ namespace SimpleGif.GifCore
 				return dict;
 			}
 
-			private static int ReadBits(BitArray bits, int size, ref int cursor)
+			private static int ReadBits(BitArray bits, int size, ref int cursor) // TODO: Most 'heavy' operation
 			{
 				var value = 0;
 
