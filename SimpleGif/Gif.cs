@@ -57,7 +57,7 @@ namespace SimpleGif
 
 				var extension = j > 0 ? blocks[j - 1] as GraphicControlExtension : null;
 				var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
-				var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
+				var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 				var pixels = DecodeFrame(extension, imageDescriptor, data, filled, width, height, state, colorTable);
 				var texture = new Texture2D(width, height);
 
@@ -94,6 +94,16 @@ namespace SimpleGif
 					}
 				}
 			}
+		}
+
+		/// <summary>
+		/// Get frame count. Can be used with DecodeIterator to display progress bar.
+		/// </summary>
+		public int GetFrameCount(byte[] bytes)
+		{
+			var parser = new GifParser(bytes);
+
+			return parser.Blocks.Count(i => i is ImageDescriptor);
 		}
 
 		/// <summary>
