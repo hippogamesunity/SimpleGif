@@ -32,7 +32,14 @@ namespace SimpleGif
 		/// </summary>
 		public static Gif Decode(byte[] bytes)
 		{
-			var frames = new List<GifFrame>();
+			return new Gif(DecodeIterator(bytes).Select(i => i).ToList());
+		}
+
+		/// <summary>
+		/// Iterator can be used for large GIF-files in order to display progress bar.
+		/// </summary>
+		public static IEnumerable<GifFrame> DecodeIterator(byte[] bytes)
+		{
 			var parser = new GifParser(bytes);
 			var blocks = parser.Blocks;
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
@@ -50,7 +57,7 @@ namespace SimpleGif
 
 				var extension = j > 0 ? blocks[j - 1] as GraphicControlExtension : null;
 				var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
-				var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
+				var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 				var pixels = DecodeFrame(extension, imageDescriptor, data, filled, width, height, state, colorTable);
 				var texture = new Texture2D(width, height);
 
@@ -63,7 +70,7 @@ namespace SimpleGif
 					Delay = extension?.DelayTime / 100f ?? 0
 				};
 
-				frames.Add(frame);
+				yield return frame;
 
 				if (extension != null)
 				{
@@ -87,8 +94,6 @@ namespace SimpleGif
 					}
 				}
 			}
-
-			return new Gif(frames);
 		}
 
 		/// <summary>
@@ -127,6 +132,48 @@ namespace SimpleGif
 			bytes.Add(0x3B);
 
 			return bytes.ToArray();
+		}
+
+		/// <summary>
+		/// Iterator can be used for large GIF-files in order to display progress bar.
+		/// </summary>
+		public IEnumerable<List<byte>> EncodeIterator()
+		{
+			const string header = "GIF89a";
+			var width = (ushort) Frames[0].Texture.width;
+			var height = (ushort) Frames[0].Texture.height;
+			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
+			var globalColorTableSize = GetColorTableSize(globalColorTable);
+			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
+			var applicationExtension = new ApplicationExtension();
+			var bytes = new List<byte>();
+
+			bytes.AddRange(Encoding.UTF8.GetBytes(header));
+			bytes.AddRange(logicalScreenDescriptor.GetBytes());
+			bytes.AddRange(ColorTableToBytes(globalColorTable, globalColorTableSize));
+			bytes.AddRange(applicationExtension.GetBytes());
+
+			yield return bytes;
+
+			foreach (var frame in Frames)
+			{
+				bytes = new List<byte>();
+
+				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
+				var imageDescriptor = new ImageDescriptor(0, 0, width, height, 0, 0, 0, 0, 0);
+				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex);
+				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
+				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
+				var tableBasedImageData = new TableBasedImageData(minCodeSize, encoded);
+
+				bytes.AddRange(graphicControlExtension.GetBytes());
+				bytes.AddRange(imageDescriptor.GetBytes());
+				bytes.AddRange(tableBasedImageData.GetBytes());
+
+				yield return bytes;
+			}
+
+			yield return new List<byte> { 0x3B };
 		}
 
 		private List<Color32> GetColorTable(out byte transparentColorFlag, out byte transparentColorIndex)
