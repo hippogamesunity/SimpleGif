@@ -99,7 +99,7 @@ namespace SimpleGif
 		/// <summary>
 		/// Get frame count. Can be used with DecodeIterator to display progress bar.
 		/// </summary>
-		public static int GetFrameCount(byte[] bytes)
+		public static int GetDecodeIteratorSize(byte[] bytes)
 		{
 			var parser = new GifParser(bytes);
 
@@ -184,6 +184,14 @@ namespace SimpleGif
 			}
 
 			yield return new List<byte> { 0x3B };
+		}
+
+		/// <summary>
+		/// Get parts count for EncodeIterator. Can be used with EncodeIterator to display progress bar.
+		/// </summary>
+		public int GetEncodeIteratorSize(byte[] bytes)
+		{
+			return Frames.Count + 2;
 		}
 
 		private List<Color32> GetColorTable(out byte transparentColorFlag, out byte transparentColorIndex)
