@@ -34,7 +34,7 @@ Advanced usage example:
 - var count = gif.GetEncodeIteratorSize(); will return EncodeIterator size so you can display progress bar for large files
 - var iterator = gif.EncodeIterator(); will return iterator so you can display progress bar for large files
 
-Note:
+Advanced usage warning:
 - calling Count() for iterator will result full iterator 'execution', that's why you need to use GetDecodeIteratorSize and GetEncodeIteratorSize for displaying progress bar (progress = i / IteratorSize).
 
 
