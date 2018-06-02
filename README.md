@@ -29,9 +29,13 @@ Usage example:
 - Delay is frame delay in milliseconds
 
 Advanced usage example:
-- var frameCount = Gif.GetFrameCount(bytes); will return frame count so you can display progress bar for large files
+- var count = Gif.GetDecodeIteratorSize(bytes); will return DecodeIterator size so you can display progress bar for large files
 - var iterator = Gif.DecodeIterator(bytes); will return iterator so you can display progress bar for large files
+- var count = gif.GetEncodeIteratorSize(); will return EncodeIterator size so you can display progress bar for large files
 - var iterator = gif.EncodeIterator(); will return iterator so you can display progress bar for large files
+
+Note:
+- calling Count() for iterator will result full iterator 'execution', that's why you need to use GetDecodeIteratorSize and GetEncodeIteratorSize for displaying progress bar (progress = i / IteratorSize).
 
 
 Nodes:
