@@ -6,7 +6,7 @@ Hi! This project is pure implementation of GIF based on GIF89a Specification.
 
 Simple GIF is lightweight cross-platform library. It doesn't use Windows system libs (like System.Drawing and System.Windows.Media) or any 3rd-party components.
 
-Basically, I've created it for processing GIF files in my mobile app Pixel Studio that was made with Unity 2018. It's Mono based game engine, so you can't just include system libraries to your project.
+Basically, I've created it for processing GIF files in my mobile app Pixel Studio that was made with Unity 2018. It's Mono based game engine, so you can't just include system libraries to your project. You can test this lib with Pixel Studio 2018: https://play.google.com/store/apps/details?id=com.PixelStudio
 
 Features:
 - lightweight (18KB binary)
