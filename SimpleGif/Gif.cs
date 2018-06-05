@@ -72,33 +72,23 @@ namespace SimpleGif
 
 						yield return frame;
 
-						if (graphicControlExtension != null)
+						switch (frame.DisposalMethod)
 						{
-							switch (graphicControlExtension.DisposalMethod)
-							{
-								case 0:
-									for (var i = 0; i < state.Length; i++)
-									{
-										state[i] = backgroundColor;
-									}
-
-									break;
-								case 1:
-									break;
-								case 2:
-									for (var i = 0; i < state.Length; i++)
-									{
-										state[i] = backgroundColor;
-									}
-
-									filled = true;
-									break;
-								case 3:
-									filled = false;
-									break; // 'state' was copied before decoding frame
-								default:
-									throw new NotSupportedException($"Unknown method: {graphicControlExtension.DisposalMethod}!");
-							}
+							case DisposalMethod.NoDisposalSpecified:
+							case DisposalMethod.DoNotDispose:
+								break;
+							case DisposalMethod.RestoreToBackgroundColor:
+								for (var i = 0; i < state.Length; i++)
+								{
+									state[i] = backgroundColor;
+								}
+								filled = true;
+								break;
+							case DisposalMethod.RestoreToPrevious: // 'state' was already copied before decoding current frame
+								filled = false;
+								break;
+							default:
+								throw new NotSupportedException($"Unknown disposal method: {frame.DisposalMethod}!");
 						}
 
 						break;
