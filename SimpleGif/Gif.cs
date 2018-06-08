@@ -153,18 +153,11 @@ namespace SimpleGif
 			const string header = "GIF89a";
 			var width = (ushort) Frames[0].Texture.width;
 			var height = (ushort) Frames[0].Texture.height;
-			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
-			var globalColorTableSize = GetColorTableSize(globalColorTable);
-			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
+			var globalColorTable = new List<Color32> { new Color32(0, 255, 0, 255) };
+			const byte transparentColorFlag = 1;
+			const byte transparentColorIndex = 0;
 			var applicationExtension = new ApplicationExtension();
-			var bytes = new List<byte>();
-
-			bytes.AddRange(Encoding.UTF8.GetBytes(header));
-			bytes.AddRange(logicalScreenDescriptor.GetBytes());
-			bytes.AddRange(ColorTableToBytes(globalColorTable, globalColorTableSize));
-			bytes.AddRange(applicationExtension.GetBytes());
-
-			yield return bytes;
+			List<byte> bytes;
 
 			foreach (var frame in Frames)
 			{
@@ -172,7 +165,7 @@ namespace SimpleGif
 
 				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, width, height, 0, 0, 0, 0, 0);
-				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex);
+				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex, extendColorTable: true);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
 				var tableBasedImageData = new TableBasedImageData(minCodeSize, encoded);
@@ -184,13 +177,26 @@ namespace SimpleGif
 				yield return bytes;
 			}
 
-			yield return new List<byte> { 0x3B };
+			yield return new List<byte> { 0x3B }; // GIF ending
+
+			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation in the beginning like Encode() does.
+
+			var globalColorTableSize = GetColorTableSize(globalColorTable);
+			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
+
+			bytes = new List<byte>();
+			bytes.AddRange(Encoding.UTF8.GetBytes(header));
+			bytes.AddRange(logicalScreenDescriptor.GetBytes());
+			bytes.AddRange(ColorTableToBytes(globalColorTable, globalColorTableSize));
+			bytes.AddRange(applicationExtension.GetBytes());
+
+			yield return bytes;
 		}
 
 		/// <summary>
 		/// Get parts count for EncodeIterator. Can be used with EncodeIterator to display progress bar.
 		/// </summary>
-		public int GetEncodeIteratorSize(byte[] bytes)
+		public int GetEncodeIteratorSize()
 		{
 			return Frames.Count + 2;
 		}
@@ -271,7 +277,7 @@ namespace SimpleGif
 			return size;
 		}
 
-		private static int[] GetColorIndexes(Texture2D texture, List<Color32> colorTable, byte transparentColorFlag, byte transparentColorIndex)
+		private static int[] GetColorIndexes(Texture2D texture, List<Color32> colorTable, byte transparentColorFlag, byte transparentColorIndex, bool extendColorTable = false)
 		{
 			var pixels = texture.GetPixels32();
 			var colorIndexes = new int[pixels.Length];
@@ -288,9 +294,26 @@ namespace SimpleGif
 					}
 					else
 					{
-						colorIndexes[x + y * texture.width] = colorTable.IndexOf(pixel);
+						var index = colorTable.IndexOf(pixel);
 
-						if (colorIndexes[x + y * texture.width] == -1) throw new Exception("Color index not found: " + pixel);
+						if (index >= 0)
+						{
+							colorIndexes[x + y * texture.width] = index;
+						}
+						else if (extendColorTable)
+						{
+							if (colorTable.Count >= 256)
+							{
+								throw new Exception("Color table exceeds 256 size limit.");
+							}
+
+							colorIndexes[x + y * texture.width] = colorTable.Count;
+							colorTable.Add(pixel);
+						}
+						else
+						{
+							throw new Exception("Color index not found: " + pixel);
+						}
 					}
 				}
 			}

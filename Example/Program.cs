@@ -14,8 +14,11 @@ namespace Example
 		public static void Main()
 		{
 			var gif = DecodeIteratorExample();
+			var binary = EncodeIteratorExample(gif);
+			var path = Path.Replace(".gif", "_.gif");
 
-			EncodeIteratorExample(gif);
+			File.WriteAllBytes(path, binary);
+
 			Console.Read();
 		}
 
@@ -118,6 +121,7 @@ namespace Example
 		{
 			var bytes = new List<byte>();
 			var parts = gif.EncodeIterator();
+			var iteratorSize = gif.GetEncodeIteratorSize();
 			var stopwatch = new Stopwatch();
 			var index = 0;
 			var time = 0d;
@@ -126,7 +130,15 @@ namespace Example
 
 			foreach (var part in parts)
 			{
-				bytes.AddRange(part);
+				if (index == iteratorSize - 1)
+				{
+					bytes.InsertRange(0, part);
+				}
+				else
+				{
+					bytes.AddRange(part);
+				}
+
 				stopwatch.Stop();
 				time += stopwatch.Elapsed.TotalSeconds;
 
