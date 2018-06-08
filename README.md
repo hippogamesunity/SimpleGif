@@ -9,7 +9,7 @@ Simple GIF is lightweight cross-platform library. It doesn't use Windows system 
 Basically, I've created it for processing GIF files in my mobile app Pixel Studio 2018 that was made with Unity 2018. It's Mono based game engine, so you can't just include system libraries to your project. You can test this lib with Pixel Studio 2018: https://play.google.com/store/apps/details?id=com.PixelStudio
 
 Features:
-- lightweight (18KB binary)
+- lightweight (~20KB binary)
 - pure (no references)
 - fast (want to believe)
 - proper namings (according to GIF spec)
