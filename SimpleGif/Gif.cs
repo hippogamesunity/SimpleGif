@@ -140,7 +140,7 @@ namespace SimpleGif
 				bytes.AddRange(tableBasedImageData.GetBytes());
 			}
 
-			bytes.Add(0x3B);
+			bytes.Add(0x3B); // GIF Trailer.
 
 			return bytes.ToArray();
 		}
@@ -206,7 +206,7 @@ namespace SimpleGif
 				yield return bytes;
 			}
 
-			yield return new List<byte> { 0x3B }; // GIF ending
+			yield return new List<byte> { 0x3B }; // GIF Trailer.
 
 			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation in the beginning like Encode() does.
 
