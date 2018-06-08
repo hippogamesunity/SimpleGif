@@ -30,11 +30,13 @@ Usage example:
 
 Advanced usage example:
 - var count = Gif.GetDecodeIteratorSize(bytes); will return DecodeIterator size so you can display progress bar for large files
-- var iterator = Gif.DecodeIterator(bytes); will return iterator so you can display progress bar for large files
-- var count = gif.GetEncodeIteratorSize(); will return EncodeIterator size so you can display progress bar for large files
-- var iterator = gif.EncodeIterator(); will return iterator so you can display progress bar for large files
+- var iterator = Gif.DecodeIterator(); will return iterator so you can display progress bar for large files
+- var count = gif.GetEncodeIteratorSize(); will return EncodeIterator size so you can display progress bar for large files (it always returns frame count - 2)
+- var iterator = gif.EncodeIterator(); will return iterator so you can display progress bar for large files (last iterator element will be GIF header, please refer to EncodeIteratorExample)
 
-Advanced usage warning:
+Advanced usage notes:
+- penultimate element of EncodeIterator is GIF Trailer (0x3B)
+- EncodeIterator will build global color table "on fly", that's why GIF header (bytes) will be the last iterator element! You need to insert this element into resulting byte sequence beginning before writing file (use LINQ InsertRange or refer to EncodeIteratorExample)
 - calling Count() for iterator will result full iterator 'execution', that's why you need to use GetDecodeIteratorSize and GetEncodeIteratorSize for displaying progress bar (progress = i / IteratorSize).
 
 
