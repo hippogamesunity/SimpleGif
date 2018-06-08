@@ -112,35 +112,24 @@ namespace SimpleGif
 		/// </summary>
 		public byte[] Encode()
 		{
-			const string header = "GIF89a";
-			var width = (ushort) Frames[0].Texture.width;
-			var height = (ushort) Frames[0].Texture.height;
-			var globalColorTable = GetColorTable(out var transparentColorFlag, out var transparentColorIndex);
-			var globalColorTableSize = GetColorTableSize(globalColorTable);
-			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
-			var applicationExtension = new ApplicationExtension();
 			var bytes = new List<byte>();
+			var iterator = EncodeIterator();
+			var iteratorSize = GetEncodeIteratorSize();
+			var index = 0;
 
-			bytes.AddRange(Encoding.UTF8.GetBytes(header));
-			bytes.AddRange(logicalScreenDescriptor.GetBytes());
-			bytes.AddRange(ColorTableToBytes(globalColorTable, globalColorTableSize));
-			bytes.AddRange(applicationExtension.GetBytes());
-
-			foreach (var frame in Frames)
+			foreach (var part in iterator)
 			{
-				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
-				var imageDescriptor = new ImageDescriptor(0, 0, width, height, 0, 0, 0, 0, 0);
-				var colorIndexes = GetColorIndexes(frame.Texture, globalColorTable, transparentColorFlag, transparentColorIndex);
-				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
-				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
-				var tableBasedImageData = new TableBasedImageData(minCodeSize, encoded);
+				if (index == iteratorSize - 1) // GIF header should be placed to sequence start!
+				{
+					bytes.InsertRange(0, part);
+				}
+				else
+				{
+					bytes.AddRange(part);
+				}
 
-				bytes.AddRange(graphicControlExtension.GetBytes());
-				bytes.AddRange(imageDescriptor.GetBytes());
-				bytes.AddRange(tableBasedImageData.GetBytes());
+				index++;
 			}
-
-			bytes.Add(0x3B); // GIF Trailer.
 
 			return bytes.ToArray();
 		}
@@ -208,7 +197,7 @@ namespace SimpleGif
 
 			yield return new List<byte> { 0x3B }; // GIF Trailer.
 
-			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation in the beginning like Encode() does.
+			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation..
 
 			globalColorTable[0] = GetTransparentColor(globalColorTable);
 
@@ -232,7 +221,7 @@ namespace SimpleGif
 			return Frames.Count + 2;
 		}
 
-		private List<Color32> GetColorTable(out byte transparentColorFlag, out byte transparentColorIndex)
+		private List<Color32> GetGlobalColorTable(out byte transparentColorFlag, out byte transparentColorIndex)
 		{
 			transparentColorFlag = 0;
 
