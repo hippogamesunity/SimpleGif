@@ -130,7 +130,7 @@ namespace Example
 
 			foreach (var part in parts)
 			{
-				if (index == iteratorSize - 1)
+				if (index == iteratorSize - 1) // GIF header should be placed to sequence start!
 				{
 					bytes.InsertRange(0, part);
 				}
