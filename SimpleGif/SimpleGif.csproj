@@ -37,6 +37,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Color32.cs" />
+    <Compile Include="Data\DecodeProgress.cs" />
+    <Compile Include="Data\EncodeProgress.cs" />
     <Compile Include="Data\GifFrame.cs" />
     <Compile Include="Enums\DisposalMethod.cs" />
     <Compile Include="GifCore\BitHelper.cs" />

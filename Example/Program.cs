@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using SimpleGif;
 using SimpleGif.Data;
 
@@ -9,16 +10,15 @@ namespace Example
 {
 	internal class Program
 	{
-		private const string Path = "Sample.gif";
+		private const string Path = "LargeSample.gif";
 
 		public static void Main()
 		{
-			var gif = DecodeIteratorExample();
-			var binary = EncodeIteratorExample(gif);
+			var gif = DecodeParallelExample();
+			var binary = EncodeParallelExample(gif);
 			var path = Path.Replace(".gif", "_.gif");
 
 			File.WriteAllBytes(path, binary);
-
 			Console.Read();
 		}
 
@@ -36,13 +36,45 @@ namespace Example
 			Console.WriteLine("GIF loaded in {0:n2}s, size: {1}x{2}, frames: {3}.", stopwatch.Elapsed.TotalSeconds,
 				gif.Frames[0].Texture.width, gif.Frames[0].Texture.height, gif.Frames.Count);
 
-			stopwatch.Reset();
+			return gif;
+		}
+
+		public static Gif DecodeParallelExample()
+		{
+			var bytes = File.ReadAllBytes(Path);
+			var stopwatch = new Stopwatch();
+
 			stopwatch.Start();
+
+			Gif gif = null;
+			Exception exception = null;
+
+			Gif.DecodeParallel(bytes, progress =>
+			{
+				Console.WriteLine("Progress: {0}/{1}", progress.Progress, progress.FrameCount);
+				gif = progress.Gif;
+				exception = progress.Exception;
+			});
+
+			while (gif == null && exception == null)
+			{
+				Thread.Sleep(100);
+			}
+
+			if (exception != null) throw exception;
+
+			stopwatch.Stop();
+
+			if (gif != null)
+			{
+				Console.WriteLine("GIF loaded in {0:n2}s, size: {1}x{2}, frames: {3}.", stopwatch.Elapsed.TotalSeconds,
+					gif.Frames[0].Texture.width, gif.Frames[0].Texture.height, gif.Frames.Count);
+			}
 
 			return gif;
 		}
 
-		public static void EncodeExample(Gif gif)
+		public static byte[] EncodeExample(Gif gif)
 		{
 			var stopwatch = new Stopwatch();
 
@@ -53,6 +85,38 @@ namespace Example
 			stopwatch.Stop();
 
 			Console.WriteLine("GIF encoded in {0:n2}s to binary.", stopwatch.Elapsed.TotalSeconds);
+
+			return binary;
+		}
+
+		public static byte[] EncodeParallelExample(Gif gif)
+		{
+			var stopwatch = new Stopwatch();
+
+			stopwatch.Start();
+
+			byte[] binary = null;
+			Exception exception = null;
+
+			gif.EncodeParallel(progress =>
+			{
+				Console.WriteLine("Progress: {0}/{1}", progress.Progress, progress.FrameCount);
+				binary = progress.Bytes;
+				exception = progress.Exception;
+			});
+
+			while (binary == null && exception == null)
+			{
+				Thread.Sleep(100);
+			}
+
+			if (exception != null) throw exception;
+
+			stopwatch.Stop();
+
+			Console.WriteLine("GIF encoded in {0:n2}s to binary.", stopwatch.Elapsed.TotalSeconds);
+
+			return binary;
 		}
 
 		public static void EncodeDecodeSaveTest()
