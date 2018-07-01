@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -244,47 +245,60 @@ namespace SimpleGif
 			var applicationExtension = new ApplicationExtension();
 			var encoded = new Dictionary<int, List<byte>>();
 			var encodeProgress = new EncodeProgress { FrameCount = Frames.Count };
-
-			Exception exception = null;
+			var colorTables = new List<Color32>[Frames.Count];
+			var distinctColors = new Dictionary<int, List<Color32>>();
+			var manualResetEvent = new ManualResetEvent(false);
 
 			for (var i = 0; i < Frames.Count; i++)
 			{
-				var index = i;
 				var frame = Frames[i];
 
 				ThreadPool.QueueUserWorkItem(context =>
 				{
-					if (exception != null) return;
+					var distinct = frame.Texture.GetPixels32().Distinct().ToList();
 
-					var colors = frame.Texture.GetPixels32().Distinct().ToList();
-					var add = colors.Where(j => !globalColorTable.Contains(j)).ToList();
-					byte localColorTableFlag = 0;
-					byte localColorTableSize = 0;
-					List<Color32> colorTable;
-
-					lock (globalColorTable)
+					lock (distinctColors)
 					{
-						if (globalColorTable.Count + add.Count <= 256)
-						{
-							globalColorTable.AddRange(add);
-							colorTable = globalColorTable;
-						}
-						else if (add.Count <= 256) // Introducing local color table
-						{
-							colorTable = colors;
-							localColorTableFlag = 1;
-							localColorTableSize = GetColorTableSize(colorTable);
-						}
-						else
-						{
-							exception = new Exception($"Frame #{index} contains more than 256 colors!");
-							return;
-						}
-					}
+						distinctColors.Add((int) context, distinct);
 
-					var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
+						if (distinctColors.Count == Frames.Count) manualResetEvent.Set();
+					}
+				}, i);
+			}
+
+			manualResetEvent.WaitOne();
+
+			for (var i = 0; i < Frames.Count; i++)
+			{
+				var colors = distinctColors[i];
+				var add = colors.Where(j => !globalColorTable.Contains(j)).ToList();
+
+				if (globalColorTable.Count + add.Count <= 256)
+				{
+					globalColorTable.AddRange(add);
+					colorTables[i] = globalColorTable;
+				}
+				else if (add.Count <= 256) // Introducing local color table
+				{
+					colorTables[i] = colors;
+				}
+				else
+				{
+					throw new Exception($"Frame #{i} contains more than 256 colors!");
+				}
+			}
+
+			for (var i = 0; i < Frames.Count; i++) // Don't use Parallel.For to leave .NET compatibility.
+			{
+				ThreadPool.QueueUserWorkItem(context =>
+				{
+					var index = (int) context;
+					var colorTable = colorTables[index];
+					var localColorTableFlag = (byte) (colorTable == globalColorTable ? 0 : 1);
+					var localColorTableSize = GetColorTableSize(colorTable);
+					var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) Frames[index].DisposalMethod, 0, transparentColorFlag, (ushort) (100 * Frames[index].Delay), transparentColorIndex);
 					var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
-					var colorIndexes = GetColorIndexes(frame.Texture, colorTable, transparentColorFlag, transparentColorIndex);
+					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, transparentColorFlag, transparentColorIndex);
 					var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 					var lzw = LzwEncoder.Encode(colorIndexes, minCodeSize);
 					var tableBasedImageData = new TableBasedImageData(minCodeSize, lzw);
@@ -325,7 +339,7 @@ namespace SimpleGif
 
 						onProgress(encodeProgress);
 					}
-				});
+				}, i);
 			}
 		}
 
@@ -392,7 +406,7 @@ namespace SimpleGif
 
 			yield return new List<byte> { 0x3B }; // GIF Trailer.
 
-			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation..
+			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation.
 
 			globalColorTable[0] = GetTransparentColor(globalColorTable);
 
@@ -414,32 +428,6 @@ namespace SimpleGif
 		public int GetEncodeIteratorSize()
 		{
 			return Frames.Count + 2;
-		}
-
-		private List<Color32> GetGlobalColorTable(out byte transparentColorFlag, out byte transparentColorIndex)
-		{
-			transparentColorFlag = 0;
-
-			var colorTable = Frames.SelectMany(i => i.Texture.GetPixels32().Distinct()).Distinct().ToList();
-
-			if (colorTable.Count > 256) throw new NotSupportedException("Global color table exceeds size limit 256! Please consider using max 256 colors for all image frames.");
-
-			transparentColorFlag = 0;
-			transparentColorIndex = 0;
-
-			for (var i = 0; i < colorTable.Count; i++)
-			{
-				if (colorTable[i].a == 0)
-				{
-					colorTable[i] = GetTransparentColor(colorTable);
-					transparentColorFlag = 1;
-					transparentColorIndex = (byte) i;
-
-					break;
-				}
-			}
-
-			return colorTable;
 		}
 
 		private static Color32 GetTransparentColor(List<Color32> colorTable)
