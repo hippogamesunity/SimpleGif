@@ -25,7 +25,7 @@ namespace SimpleGif.GifCore
 			var dict = InitializeDictionary(minCodeSize);
 			var clearCode = 1 << minCodeSize;
 			var endOfInformation = clearCode + 1;
-			var code = colorIndexes[0].ToString();
+			var code = (long) colorIndexes[0];
 			var codeSize = minCodeSize + 1;
 			var bits = new List<bool>();
 
@@ -33,7 +33,12 @@ namespace SimpleGif.GifCore
 
 			for (var i = 1; i < colorIndexes.Length; i++)
 			{
-				var next = code + " " + colorIndexes[i];
+				long next;
+
+				unchecked
+				{
+					next = 257 * (code + 1) + colorIndexes[i];
+				}
 
 				if (dict.ContainsKey(next))
 				{
@@ -42,7 +47,7 @@ namespace SimpleGif.GifCore
 				else
 				{
 					ReadBits(dict[code], codeSize, ref bits);
-					code = colorIndexes[i].ToString();
+					code = colorIndexes[i];
 
 					if (dict.Count < 4096)
 					{
@@ -64,13 +69,13 @@ namespace SimpleGif.GifCore
 			return bytes;
 		}
 
-		private static Dictionary<string, int> InitializeDictionary(int minCodeSize)
+		private static Dictionary<long, int> InitializeDictionary(int minCodeSize)
 		{
-			var dict = new Dictionary<string, int>();
+			var dict = new Dictionary<long, int>();
 
 			for (var i = 0; i < (1 << minCodeSize) + 2; i++)
 			{
-				dict.Add(i.ToString(), i);
+				dict.Add(i, i);
 			}
 
 			return dict;
