@@ -99,7 +99,7 @@ namespace SimpleGif
 
 					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
-					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable)parser.Blocks[j + 1]) : globalColorTable;
+					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) parser.Blocks[j + 1]) : globalColorTable;
 					var colorIndexes = decoded[imageDescriptor];
 					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, colorIndexes, filled, width, height, state, colorTable);
 
@@ -156,7 +156,7 @@ namespace SimpleGif
 
 					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
-					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable)blocks[j + 1]) : globalColorTable;
+					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
 					var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, data, filled, width, height, state, colorTable);
 
