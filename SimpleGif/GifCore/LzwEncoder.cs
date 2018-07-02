@@ -22,10 +22,12 @@ namespace SimpleGif.GifCore
 
 		public static byte[] Encode(int[] colorIndexes, int minCodeSize)
 		{
-			var dict = InitializeDictionary(minCodeSize);
+			var codeCache = Enumerable.Range(byte.MinValue, byte.MaxValue).Select(b => new[] { (byte) b }).ToArray();
+
+			var dict = InitializeDictionary(minCodeSize, codeCache);
 			var clearCode = 1 << minCodeSize;
 			var endOfInformation = clearCode + 1;
-			var code = (long) colorIndexes[0];
+			var code = codeCache[colorIndexes[0]];
 			var codeSize = minCodeSize + 1;
 			var bits = new List<bool>();
 
@@ -33,13 +35,7 @@ namespace SimpleGif.GifCore
 
 			for (var i = 1; i < colorIndexes.Length; i++)
 			{
-				long next;
-
-				unchecked
-				{
-					next = 257 * (code + 1) + colorIndexes[i];
-				}
-
+				var next = code.Add((byte) colorIndexes[i]);
 				if (dict.ContainsKey(next))
 				{
 					code = next;
@@ -47,7 +43,7 @@ namespace SimpleGif.GifCore
 				else
 				{
 					ReadBits(dict[code], codeSize, ref bits);
-					code = colorIndexes[i];
+					code = codeCache[(byte) colorIndexes[i]];
 
 					if (dict.Count < 4096)
 					{
@@ -69,13 +65,13 @@ namespace SimpleGif.GifCore
 			return bytes;
 		}
 
-		private static Dictionary<long, int> InitializeDictionary(int minCodeSize)
+		private static Dictionary<byte[], int> InitializeDictionary(int minCodeSize, byte[][] codeCache)
 		{
-			var dict = new Dictionary<long, int>();
+			var dict = new Dictionary<byte[], int>(new ByteArrayEqualityComparer());
 
 			for (var i = 0; i < (1 << minCodeSize) + 2; i++)
 			{
-				dict.Add(i, i);
+				dict.Add(codeCache[i], i);
 			}
 
 			return dict;
@@ -108,6 +104,43 @@ namespace SimpleGif.GifCore
 			array.CopyTo(bytes, 0);
 
 			return bytes;
+		}
+	}
+
+	internal class ByteArrayEqualityComparer : IEqualityComparer<byte[]>
+	{
+		public bool Equals(byte[] x, byte[] y)
+		{
+			if (x.Length != y.Length)
+				return false;
+
+			for (int i = 0; i < x.Length; i++)
+			{
+				if (x[i] != y[i])
+					return false;
+			}
+
+			return true;
+		}
+
+		public int GetHashCode(byte[] obj)
+		{
+			int hash = obj.Length;
+			for (int i = 0; i < obj.Length; i++)
+				hash = unchecked(hash * 314159 + obj[i]);
+
+			return hash;
+		}
+	}
+
+	internal static class ByteArrayHelper
+	{
+		public static byte[] Add(this byte[] bytes, byte val)
+		{
+			var newBytes = new byte[bytes.Length + 1];
+			Array.Copy(bytes, newBytes, bytes.Length);
+			newBytes[bytes.Length] = val;
+			return newBytes;
 		}
 	}
 }
