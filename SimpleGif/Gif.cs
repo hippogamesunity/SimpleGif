@@ -50,7 +50,9 @@ namespace SimpleGif
 
 			for (var i = 0; i < parser.Blocks.Count; i++)
 			{
-				if (!(parser.Blocks[i] is ImageDescriptor imageDescriptor)) continue;
+				var imageDescriptor = parser.Blocks[i] as ImageDescriptor;
+
+				if (imageDescriptor == null) continue;
 
 				var data = (TableBasedImageData) parser.Blocks[i + 1 + imageDescriptor.LocalColorTableFlag];
 
@@ -87,45 +89,39 @@ namespace SimpleGif
 
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
-				switch (parser.Blocks[j])
+				if (parser.Blocks[j] is GraphicControlExtension)
 				{
-					case GraphicControlExtension _:
+					graphicControlExtension = (GraphicControlExtension)parser.Blocks[j];
+				}
+				else if (parser.Blocks[j] is ImageDescriptor)
+				{
+					var imageDescriptor = (ImageDescriptor)parser.Blocks[j];
+
+					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
+
+					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable)parser.Blocks[j + 1]) : globalColorTable;
+					var colorIndexes = decoded[imageDescriptor];
+					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, colorIndexes, filled, width, height, state, colorTable);
+
+					frames.Add(frame);
+
+					switch (frame.DisposalMethod)
 					{
-						graphicControlExtension = (GraphicControlExtension) parser.Blocks[j];
-						break;
-					}
-					case ImageDescriptor _:
-					{
-						var imageDescriptor = (ImageDescriptor) parser.Blocks[j];
-
-						if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
-
-						var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) parser.Blocks[j + 1]) : globalColorTable;
-						var colorIndexes = decoded[imageDescriptor];
-						var frame = DecodeFrame(graphicControlExtension, imageDescriptor, colorIndexes, filled, width, height, state, colorTable);
-
-						frames.Add(frame);
-
-						switch (frame.DisposalMethod)
-						{
-							case DisposalMethod.NoDisposalSpecified:
-							case DisposalMethod.DoNotDispose:
-								break;
-							case DisposalMethod.RestoreToBackgroundColor:
-								for (var i = 0; i < state.Length; i++)
-								{
-									state[i] = backgroundColor;
-								}
-								filled = true;
-								break;
-							case DisposalMethod.RestoreToPrevious: // 'state' was already copied before decoding current frame
-								filled = false;
-								break;
-							default:
-								throw new NotSupportedException($"Unknown disposal method: {frame.DisposalMethod}!");
-						}
-
-						break;
+						case DisposalMethod.NoDisposalSpecified:
+						case DisposalMethod.DoNotDispose:
+							break;
+						case DisposalMethod.RestoreToBackgroundColor:
+							for (var i = 0; i < state.Length; i++)
+							{
+								state[i] = backgroundColor;
+							}
+							filled = true;
+							break;
+						case DisposalMethod.RestoreToPrevious: // 'state' was already copied before decoding current frame
+							filled = false;
+							break;
+						default:
+							throw new NotSupportedException($"Unknown disposal method: {frame.DisposalMethod}!");
 					}
 				}
 			}
@@ -150,45 +146,39 @@ namespace SimpleGif
 			
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
-				switch (blocks[j])
+				if (blocks[j] is GraphicControlExtension)
 				{
-					case GraphicControlExtension _:
+					graphicControlExtension = (GraphicControlExtension)blocks[j];
+				}
+				else if (blocks[j] is ImageDescriptor)
+				{
+					var imageDescriptor = (ImageDescriptor)blocks[j];
+
+					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
+
+					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable)blocks[j + 1]) : globalColorTable;
+					var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
+					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, data, filled, width, height, state, colorTable);
+
+					yield return frame;
+
+					switch (frame.DisposalMethod)
 					{
-						graphicControlExtension = (GraphicControlExtension) blocks[j];
-						break;
-					}
-					case ImageDescriptor _:
-					{
-						var imageDescriptor = (ImageDescriptor) blocks[j];
-
-						if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
-
-						var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
-						var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
-						var frame = DecodeFrame(graphicControlExtension, imageDescriptor, data, filled, width, height, state, colorTable);
-
-						yield return frame;
-
-						switch (frame.DisposalMethod)
-						{
-							case DisposalMethod.NoDisposalSpecified:
-							case DisposalMethod.DoNotDispose:
-								break;
-							case DisposalMethod.RestoreToBackgroundColor:
-								for (var i = 0; i < state.Length; i++)
-								{
-									state[i] = backgroundColor;
-								}
-								filled = true;
-								break;
-							case DisposalMethod.RestoreToPrevious: // 'state' was already copied before decoding current frame
-								filled = false;
-								break;
-							default:
-								throw new NotSupportedException($"Unknown disposal method: {frame.DisposalMethod}!");
-						}
-
-						break;
+						case DisposalMethod.NoDisposalSpecified:
+						case DisposalMethod.DoNotDispose:
+							break;
+						case DisposalMethod.RestoreToBackgroundColor:
+							for (var i = 0; i < state.Length; i++)
+							{
+								state[i] = backgroundColor;
+							}
+							filled = true;
+							break;
+						case DisposalMethod.RestoreToPrevious: // 'state' was already copied before decoding current frame
+							filled = false;
+							break;
+						default:
+							throw new NotSupportedException($"Unknown disposal method: {frame.DisposalMethod}!");
 					}
 				}
 			}

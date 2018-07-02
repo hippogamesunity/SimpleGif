@@ -1,9 +1,11 @@
-﻿namespace SimpleGif.Data
+﻿using System;
+
+namespace SimpleGif.Data
 {
 	/// <summary>
 	/// Stub for Color32 from UnityEngine.CoreModule
 	/// </summary>
-	public struct Color32
+	public struct Color32 : IEquatable<Color32>
 	{
 		// ReSharper disable InconsistentNaming (original naming saved)
 		public readonly byte r;
@@ -23,6 +25,23 @@
 		public bool Equals(Color32 other)
 		{
 			return r == other.r && g == other.g && b == other.b && a == other.a;
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj == null || GetType() != obj.GetType()) return false;
+
+			var other = (Color32) obj;
+
+			return Equals(other);
+		}
+
+		public override int GetHashCode()
+		{
+			unchecked
+			{
+				return r + 256 * g + 65536 * b + 16777216 * a;
+			}
 		}
 	}
 }

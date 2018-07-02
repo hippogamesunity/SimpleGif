@@ -14,29 +14,22 @@ namespace SimpleGif.GifCore
 				var clearCode = 1 << minCodeSize;
 				var endOfInformation = clearCode + 1;
 				var codeSize = minCodeSize + 1;
-				Dictionary<int, List<int>> dict;
-				int value;
-				var colorIndexes = new List<int>();
+				var dict = InitializeDictionary(minCodeSize);
 				var index = codeSize;
-				List<int> prev;
-
-				void Clear()
-				{
-					codeSize = minCodeSize + 1;
-					dict = InitializeDictionary(minCodeSize);
-					value = ReadBits(bits, codeSize, ref index);
-					colorIndexes.AddRange(prev = dict[value]);
-				}
-
-				Clear();
-
+				var value = ReadBits(bits, codeSize, ref index);
+				var prev = dict[value];
+				var colorIndexes = prev.ToList();
+				
 				while (index + codeSize <= bits.Length)
 				{
 					value = ReadBits(bits, codeSize, ref index);
 
 					if (value == clearCode)
 					{
-						Clear();
+						codeSize = minCodeSize + 1;
+						dict = InitializeDictionary(minCodeSize);
+						value = ReadBits(bits, codeSize, ref index);
+						colorIndexes.AddRange(prev = dict[value]);
 						continue;
 					}
 
