@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -44,7 +43,7 @@ namespace SimpleGif
 		public static void DecodeParallel(byte[] bytes, Action<DecodeProgress> onProgress) // TODO: Refact
 		{
 			var parser = new GifParser(bytes);
-			var decoded = new Dictionary<ImageDescriptor, int[]>();
+			var decoded = new Dictionary<ImageDescriptor, byte[]>();
 			var frameCount = parser.Blocks.Count(i => i is ImageDescriptor);
 			var decodeProgress = new DecodeProgress { FrameCount = frameCount };
 
@@ -76,7 +75,7 @@ namespace SimpleGif
 			}
 		}
 
-		private static Gif CompleteDecode(GifParser parser, IDictionary<ImageDescriptor, int[]> decoded)
+		private static Gif CompleteDecode(GifParser parser, IDictionary<ImageDescriptor, byte[]> decoded)
 		{
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
 			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? new Color32();
@@ -91,11 +90,11 @@ namespace SimpleGif
 			{
 				if (parser.Blocks[j] is GraphicControlExtension)
 				{
-					graphicControlExtension = (GraphicControlExtension)parser.Blocks[j];
+					graphicControlExtension = (GraphicControlExtension) parser.Blocks[j];
 				}
 				else if (parser.Blocks[j] is ImageDescriptor)
 				{
-					var imageDescriptor = (ImageDescriptor)parser.Blocks[j];
+					var imageDescriptor = (ImageDescriptor) parser.Blocks[j];
 
 					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
@@ -470,10 +469,10 @@ namespace SimpleGif
 			return size;
 		}
 
-		private static int[] GetColorIndexes(Texture2D texture, List<Color32> colorTable, byte transparentColorFlag, byte transparentColorIndex)
+		private static byte[] GetColorIndexes(Texture2D texture, IList<Color32> colorTable, byte transparentColorFlag, byte transparentColorIndex)
 		{
 			var pixels = texture.GetPixels32();
-			var colorIndexes = new int[pixels.Length];
+			var colorIndexes = new byte[pixels.Length];
 
 			for (var y = 0; y < texture.height; y++)
 			{
@@ -491,7 +490,7 @@ namespace SimpleGif
 
 						if (index >= 0)
 						{
-							colorIndexes[x + y * texture.width] = index;
+							colorIndexes[x + y * texture.width] = (byte) index;
 						}
 						else
 						{
@@ -552,7 +551,7 @@ namespace SimpleGif
 			return frame;
 		}
 
-		private static GifFrame DecodeFrame(GraphicControlExtension extension, ImageDescriptor descriptor, int[] colorIndexes, bool filled, int width, int height, Color32[] state, Color32[] colorTable)
+		private static GifFrame DecodeFrame(GraphicControlExtension extension, ImageDescriptor descriptor, byte[] colorIndexes, bool filled, int width, int height, Color32[] state, Color32[] colorTable)
 		{
 			var frame = new GifFrame();
 			var pixels = state;

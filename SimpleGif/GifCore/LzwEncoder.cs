@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace SimpleGif.GifCore
 {
 	internal static class LzwEncoder
 	{
-		public static byte GetMinCodeSize(int[] colorIndexes)
+		public static byte GetMinCodeSize(byte[] colorIndexes)
 		{
 			byte minCodeSize = 2;
 			var max = colorIndexes.Max();
@@ -20,12 +18,12 @@ namespace SimpleGif.GifCore
 			return minCodeSize;
 		}
 
-		public static byte[] Encode(int[] colorIndexes, int minCodeSize)
+		public static byte[] Encode(byte[] colorIndexes, int minCodeSize)
 		{
 			var dict = InitializeDictionary(minCodeSize);
 			var clearCode = 1 << minCodeSize;
 			var endOfInformation = clearCode + 1;
-			var code = (long) colorIndexes[0];
+			long code = colorIndexes[0];
 			var codeSize = minCodeSize + 1;
 			var bits = new List<bool>();
 
@@ -37,7 +35,7 @@ namespace SimpleGif.GifCore
 
 				unchecked
 				{
-					next = 257 * (code + 1) + colorIndexes[i];
+					next = 257 * (code + 1) + colorIndexes[i]; // TODO: Some "magic" for performance speed up. For proper encoding you should use byte array keys and implement byte array comparer!
 				}
 
 				if (dict.ContainsKey(next))
@@ -94,18 +92,21 @@ namespace SimpleGif.GifCore
 			return (value & (1 << index)) != 0;
 		}
 
-		private static byte[] GetBytes(List<bool> bits)
+		private static byte[] GetBytes(IList<bool> bits)
 		{
-			var array = new BitArray(bits.Count);
+			var size = bits.Count >> 3;
+
+			if ((bits.Count & 0x07) != 0) ++size;
+
+			var bytes = new byte[size];
 
 			for (var i = 0; i < bits.Count; i++)
 			{
-				array[i] = bits[i];
+				if (bits[i])
+				{
+					bytes[i >> 3] |= (byte) (1 << (i & 0x07));
+				}
 			}
-
-			var bytes = new byte[(int)Math.Ceiling(array.Length / 8d)];
-
-			array.CopyTo(bytes, 0);
 
 			return bytes;
 		}

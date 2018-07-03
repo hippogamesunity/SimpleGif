@@ -8,7 +8,7 @@ namespace SimpleGif.GifCore
 	{
 		internal static class LzwDecoder
 		{
-			public static int[] Decode(byte[] bytes, int minCodeSize)
+			public static byte[] Decode(byte[] bytes, int minCodeSize)
 			{
 				var bits = new BitArray(bytes);
 				var clearCode = 1 << minCodeSize;
@@ -65,13 +65,13 @@ namespace SimpleGif.GifCore
 				return colorIndexes.ToArray();
 			}
 
-			private static Dictionary<int, List<int>> InitializeDictionary(int minCodeSize)
+			private static Dictionary<int, List<byte>> InitializeDictionary(int minCodeSize)
 			{
-				var dict = new Dictionary<int, List<int>>();
+				var dict = new Dictionary<int, List<byte>>();
 
 				for (var i = 0; i < (1 << minCodeSize) + 2; i++)
 				{
-					dict.Add(i, new List<int> { i });
+					dict.Add(i, new List<byte> { (byte) i });
 				}
 
 				return dict;
