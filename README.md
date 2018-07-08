@@ -21,13 +21,13 @@ Requirements:
 - set target platform .NET Framework 4.0 to speed up a multithreading
 
 Usage example:
-- var gif = Gif.Decode(byte[] bytes); will load GIF from binary
-- var gif = new Gif(List<GifFrame> frames); will create GIF from image list
-- gif.Encode(); will return binary ready to be displayed or written on disk
-- gif.Frames contains frame list
+- var gif = Gif.Decode(byte[] bytes); will load GIF from a binary
+- var gif = new Gif(List<GifFrame> frames); will create GIF from an image list
+- gif.Encode(); will return a binary ready to be displayed or written on a disk
+- gif.Frames contains a frame list
 - each frame has Texture and Delay
-- Texture is just abstract Color32 array (Color32 structure has RGBA byte values)
-- Delay is frame delay in milliseconds
+- Texture is just an abstract Color32 array (Color32 structure has RGBA byte values)
+- Delay is a frame delay in milliseconds
 
 Advanced usage example:
 - var count = Gif.GetDecodeIteratorSize(bytes); will return DecodeIterator size so you can display a progress bar for large files
