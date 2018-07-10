@@ -1,0 +1,6 @@
+<?xml version='1.0'?>
+<Obfuscator>
+  <Var name="InPath" value=".\" />
+  <Var name="OutPath" value=".\..\Obfuscated" />
+  <Module file="$(InPath)\SimpleGif.dll" />
+</Obfuscator>

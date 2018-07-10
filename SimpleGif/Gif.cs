@@ -67,6 +67,7 @@ namespace SimpleGif
 						if (decoded.Count == frameCount)
 						{
 							decodeProgress.Gif = CompleteDecode(parser, decoded);
+							decodeProgress.Completed = true;
 						}
 
 						onProgress(decodeProgress);
@@ -229,8 +230,6 @@ namespace SimpleGif
 			var width = (ushort) Frames[0].Texture.width;
 			var height = (ushort) Frames[0].Texture.height;
 			var globalColorTable = new List<Color32> { new Color32() };
-			const byte transparentColorFlag = 1;
-			const byte transparentColorIndex = 0;
 			var applicationExtension = new ApplicationExtension();
 			var encoded = new Dictionary<int, List<byte>>();
 			var encodeProgress = new EncodeProgress { FrameCount = Frames.Count };
@@ -244,7 +243,7 @@ namespace SimpleGif
 
 				ThreadPool.QueueUserWorkItem(context =>
 				{
-					var distinct = frame.Texture.GetPixels32().Distinct().ToList();
+					var distinct = frame.Texture.GetPixels32().Distinct().Where(j => j.a != 0).ToList();
 
 					lock (distinctColors)
 					{
@@ -285,9 +284,11 @@ namespace SimpleGif
 					var colorTable = colorTables[index];
 					var localColorTableFlag = (byte) (colorTable == globalColorTable ? 0 : 1);
 					var localColorTableSize = GetColorTableSize(colorTable);
-					var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) Frames[index].DisposalMethod, 0, transparentColorFlag, (ushort) (100 * Frames[index].Delay), transparentColorIndex);
+					byte transparentColorFlag;
+					byte transparentColorIndex;
+					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, out transparentColorFlag, out transparentColorIndex);
 					var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
-					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, transparentColorFlag, transparentColorIndex);
+					var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) Frames[index].DisposalMethod, 0, transparentColorFlag, (ushort) (100 * Frames[index].Delay), transparentColorIndex);
 					var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 					var lzw = LzwEncoder.Encode(colorIndexes, minCodeSize);
 					var tableBasedImageData = new TableBasedImageData(minCodeSize, lzw);
@@ -324,6 +325,7 @@ namespace SimpleGif
 							binary.Add(0x3B); // GIF Trailer.
 
 							encodeProgress.Bytes = binary.ToArray();
+							encodeProgress.Completed = true;
 						}
 
 						onProgress(encodeProgress);
@@ -341,8 +343,6 @@ namespace SimpleGif
 			var width = (ushort) Frames[0].Texture.width;
 			var height = (ushort) Frames[0].Texture.height;
 			var globalColorTable = new List<Color32> { new Color32() };
-			const byte transparentColorFlag = 1;
-			const byte transparentColorIndex = 0;
 			var applicationExtension = new ApplicationExtension();
 			List<byte> bytes;
 
@@ -373,9 +373,11 @@ namespace SimpleGif
 
 				bytes = new List<byte>();
 
+				byte transparentColorFlag;
+				byte transparentColorIndex;
+				var colorIndexes = GetColorIndexes(frame.Texture, colorTable, out transparentColorFlag, out transparentColorIndex);
 				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
-				var colorIndexes = GetColorIndexes(frame.Texture, colorTable, transparentColorFlag, transparentColorIndex);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
 				var tableBasedImageData = new TableBasedImageData(minCodeSize, encoded);
@@ -469,8 +471,11 @@ namespace SimpleGif
 			return size;
 		}
 
-		private static byte[] GetColorIndexes(Texture2D texture, IList<Color32> colorTable, byte transparentColorFlag, byte transparentColorIndex)
+		private static byte[] GetColorIndexes(Texture2D texture, IList<Color32> colorTable, out byte transparentColorFlag, out byte transparentColorIndex)
 		{
+			transparentColorFlag = 0;
+			transparentColorIndex = 0;
+
 			var pixels = texture.GetPixels32();
 			var colorIndexes = new byte[pixels.Length];
 
@@ -480,8 +485,14 @@ namespace SimpleGif
 				{
 					var pixel = pixels[x + (texture.height - y - 1) * texture.width];
 
-					if (transparentColorFlag == 1 && pixel.a == 0)
+					if (pixel.a == 0)
 					{
+						if (transparentColorFlag == 0)
+						{
+							transparentColorFlag = 1;
+							transparentColorIndex = (byte) colorTable.IndexOf(pixel);
+						}
+						
 						colorIndexes[x + y * texture.width] = transparentColorIndex;
 					}
 					else
@@ -586,6 +597,7 @@ namespace SimpleGif
 					var fx = x + descriptor.ImageLeftPosition;
 					var fy = height - y - 1 - descriptor.ImageTopPosition; // Y-flip
 
+					color.a = 255;
 					pixels[fx + fy * width] = pixels[fx + fy * width] = color;
 				}
 			}

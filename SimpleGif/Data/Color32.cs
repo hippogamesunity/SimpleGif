@@ -24,7 +24,7 @@ namespace SimpleGif.Data
 
 		public bool Equals(Color32 other)
 		{
-			return r == other.r && g == other.g && b == other.b && a == other.a;
+			return r == other.r && g == other.g && b == other.b || a == 0 && other.a == 0;
 		}
 
 		public override bool Equals(object obj)

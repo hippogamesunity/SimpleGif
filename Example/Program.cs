@@ -161,24 +161,24 @@ namespace Example
 
 			stopwatch.Start();
 
-			Gif gif = null;
-			Exception exception = null;
+			var decodeProgress = new DecodeProgress();
 
 			Gif.DecodeParallel(bytes, progress =>
 			{
 				Console.WriteLine("Decode progress: {0}/{1}", progress.Progress, progress.FrameCount);
-				gif = progress.Gif;
-				exception = progress.Exception;
+				decodeProgress = progress;
 			});
 
-			while (gif == null && exception == null)
+			while (!decodeProgress.Completed)
 			{
 				Thread.Sleep(100);
 			}
 
-			if (exception != null) throw exception;
+			if (decodeProgress.Exception != null) throw decodeProgress.Exception;
 
 			stopwatch.Stop();
+
+			var gif = decodeProgress.Gif;
 
 			if (gif != null)
 			{
@@ -195,28 +195,26 @@ namespace Example
 
 			stopwatch.Start();
 
-			byte[] binary = null;
-			Exception exception = null;
+			var encodeProgress = new EncodeProgress();
 
 			gif.EncodeParallel(progress =>
 			{
 				Console.WriteLine("Encode progress: {0}/{1}", progress.Progress, progress.FrameCount);
-				binary = progress.Bytes;
-				exception = progress.Exception;
+				encodeProgress = progress;
 			});
 
-			while (binary == null && exception == null)
+			while (!encodeProgress.Completed)
 			{
 				Thread.Sleep(100);
 			}
 
-			if (exception != null) throw exception;
+			if (encodeProgress.Exception != null) throw encodeProgress.Exception;
 
 			stopwatch.Stop();
 
 			Console.WriteLine("GIF encoded in {0:n2}s to binary.", stopwatch.Elapsed.TotalSeconds);
 
-			return binary;
+			return encodeProgress.Bytes;
 		}
 	}
 }
