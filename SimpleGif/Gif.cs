@@ -597,7 +597,6 @@ namespace SimpleGif
 					var fx = x + descriptor.ImageLeftPosition;
 					var fy = height - y - 1 - descriptor.ImageTopPosition; // Y-flip
 
-					color.a = 255;
 					pixels[fx + fy * width] = pixels[fx + fy * width] = color;
 				}
 			}
