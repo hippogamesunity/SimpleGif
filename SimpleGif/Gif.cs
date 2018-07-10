@@ -148,11 +148,11 @@ namespace SimpleGif
 			{
 				if (blocks[j] is GraphicControlExtension)
 				{
-					graphicControlExtension = (GraphicControlExtension)blocks[j];
+					graphicControlExtension = (GraphicControlExtension) blocks[j];
 				}
 				else if (blocks[j] is ImageDescriptor)
 				{
-					var imageDescriptor = (ImageDescriptor)blocks[j];
+					var imageDescriptor = (ImageDescriptor) blocks[j];
 
 					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
@@ -243,7 +243,7 @@ namespace SimpleGif
 
 				ThreadPool.QueueUserWorkItem(context =>
 				{
-					var distinct = frame.Texture.GetPixels32().Distinct().Where(j => j.a != 0).ToList();
+					var distinct = frame.Texture.GetPixels32().Distinct().ToList();
 
 					lock (distinctColors)
 					{
@@ -276,19 +276,22 @@ namespace SimpleGif
 				}
 			}
 
+			globalColorTable[0] = GetTransparentColor(globalColorTable);
+
 			for (var i = 0; i < Frames.Count; i++) // Don't use Parallel.For to leave .NET compatibility.
 			{
 				ThreadPool.QueueUserWorkItem(context =>
 				{
 					var index = (int) context;
 					var colorTable = colorTables[index];
-					var localColorTableFlag = (byte) (colorTable == globalColorTable ? 0 : 1);
+					var local = colorTable == globalColorTable;
+					var localColorTableFlag = (byte) (local ? 0 : 1);
 					var localColorTableSize = GetColorTableSize(colorTable);
-					byte transparentColorFlag;
-					byte transparentColorIndex;
-					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, out transparentColorFlag, out transparentColorIndex);
-					var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
+					byte transparentColorFlag = 1;
+					byte transparentColorIndex = 0;
+					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, local, ref transparentColorFlag, ref transparentColorIndex);
 					var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) Frames[index].DisposalMethod, 0, transparentColorFlag, (ushort) (100 * Frames[index].Delay), transparentColorIndex);
+					var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
 					var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 					var lzw = LzwEncoder.Encode(colorIndexes, minCodeSize);
 					var tableBasedImageData = new TableBasedImageData(minCodeSize, lzw);
@@ -311,8 +314,6 @@ namespace SimpleGif
 						
 						if (encoded.Count == Frames.Count)
 						{
-							globalColorTable[0] = GetTransparentColor(globalColorTable);
-
 							var globalColorTableSize = GetColorTableSize(globalColorTable);
 							var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
 							var binary = new List<byte>();
@@ -344,44 +345,67 @@ namespace SimpleGif
 			var height = (ushort) Frames[0].Texture.height;
 			var globalColorTable = new List<Color32> { new Color32() };
 			var applicationExtension = new ApplicationExtension();
-			List<byte> bytes;
+			var bytes = new List<byte>();
 
-			foreach (var frame in Frames)
+			var colorTables = new List<Color32>[Frames.Count];
+			var distinctColors = new Dictionary<int, List<Color32>>();
+			var manualResetEvent = new ManualResetEvent(false);
+
+			for (var i = 0; i < Frames.Count; i++)
 			{
-				var colors = frame.Texture.GetPixels32().Distinct().ToList();
-				var add = colors.Where(i => !globalColorTable.Contains(i)).ToList();
-				byte localColorTableFlag = 0;
-				byte localColorTableSize = 0;
-				
-				List<Color32> colorTable;
+				var frame = Frames[i];
+
+				ThreadPool.QueueUserWorkItem(context =>
+				{
+					var distinct = frame.Texture.GetPixels32().Distinct().ToList();
+
+					lock (distinctColors)
+					{
+						distinctColors.Add((int)context, distinct);
+
+						if (distinctColors.Count == Frames.Count) manualResetEvent.Set();
+					}
+				}, i);
+			}
+
+			manualResetEvent.WaitOne();
+
+			for (var i = 0; i < Frames.Count; i++)
+			{
+				var colors = distinctColors[i];
+				var add = colors.Where(j => !globalColorTable.Contains(j)).ToList();
 
 				if (globalColorTable.Count + add.Count <= 256)
 				{
 					globalColorTable.AddRange(add);
-					colorTable = globalColorTable;
+					colorTables[i] = globalColorTable;
 				}
 				else if (add.Count <= 256) // Introducing local color table
 				{
-					colorTable = colors;
-					localColorTableFlag = 1;
-					localColorTableSize = GetColorTableSize(colorTable);
+					colorTables[i] = colors;
 				}
 				else
 				{
-					throw new Exception($"Frame #{Frames.IndexOf(frame)} contains more than 256 colors!");
+					throw new Exception($"Frame #{i} contains more than 256 colors!");
 				}
+			}
 
-				bytes = new List<byte>();
-
-				byte transparentColorFlag;
-				byte transparentColorIndex;
-				var colorIndexes = GetColorIndexes(frame.Texture, colorTable, out transparentColorFlag, out transparentColorIndex);
+			foreach (var frame in Frames)
+			{
+				var colorTable = colorTables[Frames.IndexOf(frame)];
+				var local = colorTable == globalColorTable;
+				var localColorTableFlag = (byte) (local ? 0 : 1);
+				var localColorTableSize = GetColorTableSize(colorTable);
+				byte transparentColorFlag = 0;
+				byte transparentColorIndex = 0;
+				var colorIndexes = GetColorIndexes(frame.Texture, colorTable, local, ref transparentColorFlag, ref transparentColorIndex);
 				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
 				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
 				var tableBasedImageData = new TableBasedImageData(minCodeSize, encoded);
 
+				bytes.Clear();
 				bytes.AddRange(graphicControlExtension.GetBytes());
 				bytes.AddRange(imageDescriptor.GetBytes());
 
@@ -404,7 +428,7 @@ namespace SimpleGif
 			var globalColorTableSize = GetColorTableSize(globalColorTable);
 			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);
 
-			bytes = new List<byte>();
+			bytes.Clear();
 			bytes.AddRange(Encoding.UTF8.GetBytes(header));
 			bytes.AddRange(logicalScreenDescriptor.GetBytes());
 			bytes.AddRange(ColorTableToBytes(globalColorTable, globalColorTableSize));
@@ -471,10 +495,14 @@ namespace SimpleGif
 			return size;
 		}
 
-		private static byte[] GetColorIndexes(Texture2D texture, IList<Color32> colorTable, out byte transparentColorFlag, out byte transparentColorIndex)
+		private static byte[] GetColorIndexes(Texture2D texture, List<Color32> colorTable, bool local, ref byte transparentColorFlag, ref byte transparentColorIndex)
 		{
-			transparentColorFlag = 0;
-			transparentColorIndex = 0;
+			var indexes = new Dictionary<Color32, int>();
+
+			for (var i = 0; i < colorTable.Count; i++)
+			{
+				indexes.Add(colorTable[i], i);
+			}
 
 			var pixels = texture.GetPixels32();
 			var colorIndexes = new byte[pixels.Length];
@@ -485,19 +513,24 @@ namespace SimpleGif
 				{
 					var pixel = pixels[x + (texture.height - y - 1) * texture.width];
 
-					if (pixel.a == 0)
+					if (transparentColorFlag == 1 && pixel.a == 0)
 					{
-						if (transparentColorFlag == 0)
-						{
-							transparentColorFlag = 1;
-							transparentColorIndex = (byte) colorTable.IndexOf(pixel);
-						}
-						
+						//if (transparentColorFlag == 0)
+						//{
+						//	transparentColorFlag = 1;
+
+						//	if (local)
+						//	{
+						//		transparentColorIndex = (byte) indexes[pixel];
+						//		colorTable[transparentColorIndex] = GetTransparentColor(colorTable);
+						//	}
+						//}
+
 						colorIndexes[x + y * texture.width] = transparentColorIndex;
 					}
 					else
 					{
-						var index = colorTable.IndexOf(pixel);
+						var index = indexes[pixel];
 
 						if (index >= 0)
 						{
