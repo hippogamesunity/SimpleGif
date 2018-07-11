@@ -229,7 +229,7 @@ namespace SimpleGif
 			const string header = "GIF89a";
 			var width = (ushort) Frames[0].Texture.width;
 			var height = (ushort) Frames[0].Texture.height;
-			var globalColorTable = new List<Color32> { new Color32() };
+			var globalColorTable = new List<Color32>();
 			var applicationExtension = new ApplicationExtension();
 			var encoded = new Dictionary<int, List<byte>>();
 			var encodeProgress = new EncodeProgress { FrameCount = Frames.Count };
@@ -266,7 +266,7 @@ namespace SimpleGif
 					globalColorTable.AddRange(add);
 					colorTables[i] = globalColorTable;
 				}
-				else if (add.Count <= 256) // Introducing local color table
+				else if (colors.Count <= 256) // Introduce local color table.
 				{
 					colorTables[i] = colors;
 				}
@@ -276,7 +276,14 @@ namespace SimpleGif
 				}
 			}
 
-			globalColorTable[0] = GetTransparentColor(globalColorTable);
+			for (var i = 0; i < globalColorTable.Count; i++)
+			{
+				if (globalColorTable[i].a == 0)
+				{
+					globalColorTable[i] = GetTransparentColor(globalColorTable);
+					break;
+				}
+			}
 
 			for (var i = 0; i < Frames.Count; i++) // Don't use Parallel.For to leave .NET compatibility.
 			{
@@ -284,12 +291,10 @@ namespace SimpleGif
 				{
 					var index = (int) context;
 					var colorTable = colorTables[index];
-					var local = colorTable == globalColorTable;
-					var localColorTableFlag = (byte) (local ? 0 : 1);
+					var localColorTableFlag = (byte) (colorTable == globalColorTable ? 0 : 1);
 					var localColorTableSize = GetColorTableSize(colorTable);
-					byte transparentColorFlag = 1;
-					byte transparentColorIndex = 0;
-					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, local, ref transparentColorFlag, ref transparentColorIndex);
+					byte transparentColorFlag = 0, transparentColorIndex = 0;
+					var colorIndexes = GetColorIndexes(Frames[index].Texture, colorTable, localColorTableFlag, ref transparentColorFlag, ref transparentColorIndex);
 					var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) Frames[index].DisposalMethod, 0, transparentColorFlag, (ushort) (100 * Frames[index].Delay), transparentColorIndex);
 					var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
 					var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
@@ -346,7 +351,6 @@ namespace SimpleGif
 			var globalColorTable = new List<Color32> { new Color32() };
 			var applicationExtension = new ApplicationExtension();
 			var bytes = new List<byte>();
-
 			var colorTables = new List<Color32>[Frames.Count];
 			var distinctColors = new Dictionary<int, List<Color32>>();
 			var manualResetEvent = new ManualResetEvent(false);
@@ -393,12 +397,10 @@ namespace SimpleGif
 			foreach (var frame in Frames)
 			{
 				var colorTable = colorTables[Frames.IndexOf(frame)];
-				var local = colorTable == globalColorTable;
-				var localColorTableFlag = (byte) (local ? 0 : 1);
+				var localColorTableFlag = (byte) (colorTable == globalColorTable ? 0 : 1);
 				var localColorTableSize = GetColorTableSize(colorTable);
-				byte transparentColorFlag = 0;
-				byte transparentColorIndex = 0;
-				var colorIndexes = GetColorIndexes(frame.Texture, colorTable, local, ref transparentColorFlag, ref transparentColorIndex);
+				byte transparentColorFlag = 0, transparentColorIndex = 0;
+				var colorIndexes = GetColorIndexes(frame.Texture, colorTable, localColorTableFlag, ref transparentColorFlag, ref transparentColorIndex);
 				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
@@ -495,7 +497,8 @@ namespace SimpleGif
 			return size;
 		}
 
-		private static byte[] GetColorIndexes(Texture2D texture, List<Color32> colorTable, bool local, ref byte transparentColorFlag, ref byte transparentColorIndex)
+		private static byte[] GetColorIndexes(Texture2D texture, List<Color32> colorTable,
+			byte localColorTableFlag, ref byte transparentColorFlag, ref byte transparentColorIndex)
 		{
 			var indexes = new Dictionary<Color32, int>();
 
@@ -513,18 +516,18 @@ namespace SimpleGif
 				{
 					var pixel = pixels[x + (texture.height - y - 1) * texture.width];
 
-					if (transparentColorFlag == 1 && pixel.a == 0)
+					if (pixel.a == 0)
 					{
-						//if (transparentColorFlag == 0)
-						//{
-						//	transparentColorFlag = 1;
+						if (transparentColorFlag == 0)
+						{
+							transparentColorFlag = 1;
 
-						//	if (local)
-						//	{
-						//		transparentColorIndex = (byte) indexes[pixel];
-						//		colorTable[transparentColorIndex] = GetTransparentColor(colorTable);
-						//	}
-						//}
+							if (localColorTableFlag == 1)
+							{
+								transparentColorIndex = (byte) indexes[pixel];
+								colorTable[transparentColorIndex] = GetTransparentColor(colorTable);
+							}
+						}
 
 						colorIndexes[x + y * texture.width] = transparentColorIndex;
 					}
