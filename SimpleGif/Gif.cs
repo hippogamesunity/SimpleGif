@@ -199,7 +199,30 @@ namespace SimpleGif
 		/// </summary>
 		public void ApplyPalette(MasterPalette palette)
 		{
-			Frames.ForEach(i => i.ApplyPalette(palette));
+			var progress = new List<object>();
+			var manualResetEvent = new ManualResetEvent(false);
+
+			for (var i = 0; i < Frames.Count; i++)
+			{
+				var frame = Frames[i];
+
+				ThreadPool.QueueUserWorkItem(context =>
+				{
+					frame.ApplyPalette(palette);
+
+					lock (progress)
+					{
+						progress.Add(context);
+
+						if (progress.Count == Frames.Count)
+						{
+							manualResetEvent.Set();
+						}
+					}
+				}, i);
+			}
+
+			manualResetEvent.WaitOne();
 		}
 
 		/// <summary>
