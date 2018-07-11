@@ -195,6 +195,14 @@ namespace SimpleGif
 		}
 
 		/// <summary>
+		/// Apply master palette to convert true color image to 256-color image.
+		/// </summary>
+		public void ApplyPalette(MasterPalette palette)
+		{
+			Frames.ForEach(i => i.ApplyPalette(palette));
+		}
+
+		/// <summary>
 		/// Encode all frames to byte array
 		/// </summary>
 		public byte[] Encode()

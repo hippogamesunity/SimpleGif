@@ -43,6 +43,8 @@
     <Compile Include="Data\EncodeProgress.cs" />
     <Compile Include="Data\GifFrame.cs" />
     <Compile Include="Enums\DisposalMethod.cs" />
+    <Compile Include="Enums\MasterPalette.cs" />
+    <Compile Include="GifCore\TextureConverter.cs" />
     <Compile Include="GifCore\BitHelper.cs" />
     <Compile Include="GifCore\Blocks\ApplicationExtension.cs" />
     <Compile Include="GifCore\Blocks\Block.cs" />
@@ -51,7 +53,7 @@
     <Compile Include="GifCore\Blocks\GraphicControlExtension.cs" />
     <Compile Include="GifCore\Blocks\ImageDescriptor.cs" />
     <Compile Include="GifCore\Blocks\PlainTextExtension.cs" />
-    <Compile Include="GifCore\ByteArrayEqualityComparer.cs" />
+    <Compile Include="GifCore\ByteArrayComparer.cs" />
     <Compile Include="GifCore\GifParser.cs" />
     <Compile Include="GifCore\LogicalScreenDescriptor.cs" />
     <Compile Include="GifCore\LzwDecoder.cs" />
