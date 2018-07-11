@@ -157,7 +157,7 @@ namespace SimpleGif
 					if (imageDescriptor.InterlaceFlag == 1) throw new NotSupportedException("Interlacing is not supported!");
 
 					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
-					var data = (TableBasedImageData)blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
+					var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, data, filled, width, height, state, colorTable);
 
 					yield return frame;
@@ -348,7 +348,7 @@ namespace SimpleGif
 			const string header = "GIF89a";
 			var width = (ushort) Frames[0].Texture.width;
 			var height = (ushort) Frames[0].Texture.height;
-			var globalColorTable = new List<Color32> { new Color32() };
+			var globalColorTable = new List<Color32>();
 			var applicationExtension = new ApplicationExtension();
 			var bytes = new List<byte>();
 			var colorTables = new List<Color32>[Frames.Count];
@@ -394,9 +394,10 @@ namespace SimpleGif
 				}
 			}
 
-			foreach (var frame in Frames)
+			for (var i = 0; i < Frames.Count; i++)
 			{
-				var colorTable = colorTables[Frames.IndexOf(frame)];
+				var frame = Frames[i];
+				var colorTable = colorTables[i];
 				var localColorTableFlag = (byte) (colorTable == globalColorTable ? 0 : 1);
 				var localColorTableSize = GetColorTableSize(colorTable);
 				byte transparentColorFlag = 0, transparentColorIndex = 0;
@@ -404,8 +405,8 @@ namespace SimpleGif
 				var graphicControlExtension = new GraphicControlExtension(4, 0, (byte) frame.DisposalMethod, 0, transparentColorFlag, (ushort) (100 * frame.Delay), transparentColorIndex);
 				var imageDescriptor = new ImageDescriptor(0, 0, width, height, localColorTableFlag, 0, 0, 0, localColorTableSize);
 				var minCodeSize = LzwEncoder.GetMinCodeSize(colorIndexes);
-				var encoded = LzwEncoder.Encode(colorIndexes, minCodeSize);
-				var tableBasedImageData = new TableBasedImageData(minCodeSize, encoded);
+				var lzw = LzwEncoder.Encode(colorIndexes, minCodeSize);
+				var tableBasedImageData = new TableBasedImageData(minCodeSize, lzw);
 
 				bytes.Clear();
 				bytes.AddRange(graphicControlExtension.GetBytes());
@@ -424,8 +425,6 @@ namespace SimpleGif
 			yield return new List<byte> { 0x3B }; // GIF Trailer.
 
 			// Then output GIF header as last iterator element! This way we can build global color table "on fly" instead of expensive building operation.
-
-			globalColorTable[0] = GetTransparentColor(globalColorTable);
 
 			var globalColorTableSize = GetColorTableSize(globalColorTable);
 			var logicalScreenDescriptor = new LogicalScreenDescriptor(width, height, 1, 7, 0, globalColorTableSize, 0, 0);

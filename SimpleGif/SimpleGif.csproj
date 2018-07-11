@@ -51,6 +51,7 @@
     <Compile Include="GifCore\Blocks\GraphicControlExtension.cs" />
     <Compile Include="GifCore\Blocks\ImageDescriptor.cs" />
     <Compile Include="GifCore\Blocks\PlainTextExtension.cs" />
+    <Compile Include="GifCore\ByteArrayEqualityComparer.cs" />
     <Compile Include="GifCore\GifParser.cs" />
     <Compile Include="GifCore\LogicalScreenDescriptor.cs" />
     <Compile Include="GifCore\LzwDecoder.cs" />
