@@ -197,7 +197,7 @@ namespace SimpleGif
 		/// <summary>
 		/// Apply master palette to convert true color image to 256-color image.
 		/// </summary>
-		public void ApplyPalette(MasterPalette palette)
+		public Gif ApplyPalette(MasterPalette palette)
 		{
 			var progress = new List<object>();
 			var manualResetEvent = new ManualResetEvent(false);
@@ -223,6 +223,8 @@ namespace SimpleGif
 			}
 
 			manualResetEvent.WaitOne();
+
+			return this;
 		}
 
 		/// <summary>
@@ -303,7 +305,8 @@ namespace SimpleGif
 				}
 				else
 				{
-					throw new Exception($"Frame #{i} contains more than 256 colors!");
+					onProgress(new EncodeProgress { Completed = true, Exception = new Exception($"Frame #{i} contains more than 256 colors!") });
+					return;
 				}
 			}
 
