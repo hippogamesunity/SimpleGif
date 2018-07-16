@@ -40,7 +40,7 @@ namespace SimpleGif.Data
 		{
 			unchecked
 			{
-				return r + 256 * g + 65536 * b + 16777216 * a;
+				return r + 256 * g + 65536 * b + a == 0 ? 0 : 1;
 			}
 		}
 	}
