@@ -310,14 +310,7 @@ namespace SimpleGif
 				}
 			}
 
-			for (var i = 0; i < globalColorTable.Count; i++)
-			{
-				if (globalColorTable[i].a == 0)
-				{
-					globalColorTable[i] = GetTransparentColor(globalColorTable);
-					break;
-				}
-			}
+			ReplaceTransparentColor(ref globalColorTable);
 
 			for (var i = 0; i < Frames.Count; i++) // Don't use Parallel.For to leave .NET compatibility.
 			{
@@ -427,6 +420,8 @@ namespace SimpleGif
 					throw new Exception($"Frame #{i} contains more than 256 colors!");
 				}
 			}
+
+			ReplaceTransparentColor(ref globalColorTable);
 
 			for (var i = 0; i < Frames.Count; i++)
 			{
@@ -687,6 +682,20 @@ namespace SimpleGif
 			}
 
 			return colors;
+		}
+
+		private static void ReplaceTransparentColor(ref List<Color32> colors)
+		{
+			for (var i = 0; i < colors.Count; i++)
+			{
+				if (colors[i].a == 0)
+				{
+					colors.RemoveAll(j => j.a == 0);
+					colors.Insert(0, GetTransparentColor(colors));
+
+					return;
+				}
+			}
 		}
 	}
 }
