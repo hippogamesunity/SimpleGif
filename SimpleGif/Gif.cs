@@ -143,6 +143,7 @@ namespace SimpleGif
 			GraphicControlExtension graphicControlExtension = null;
 			var state = new Color32[width * height];
 			var filled = false;
+			//var frames = 0;
 			
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
@@ -159,6 +160,16 @@ namespace SimpleGif
 					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) blocks[j + 1]) : globalColorTable;
 					var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, data, filled, width, height, state, colorTable);
+
+					//if (frame.Texture.width > 128 || frame.Texture.height > 128)
+					//{
+					//	throw new Exception("Free version has maximum supported size 128x128 px. Please consider buying the full version of Power GIF.");
+					//}
+
+					//if (++frames > 20)
+					//{
+					//	throw new Exception("Free version has frame limit 20. Please consider buying the full version of Power GIF.");
+					//}
 
 					yield return frame;
 
@@ -232,6 +243,16 @@ namespace SimpleGif
 		/// </summary>
 		public byte[] Encode()
 		{
+			//if (Frames[0].Texture.width > 128 || Frames[0].Texture.height > 128)
+			//{
+			//	throw new Exception("Free version has maximum supported size 128x128 px. Please consider buying the full version of Power GIF.");
+			//}
+
+			//if (Frames.Count > 10)
+			//{
+			//	throw new Exception("Free version has frame limit 10. Please consider buying the full version of Power GIF.");
+			//}
+
 			var bytes = new List<byte>();
 			var iterator = EncodeIterator();
 			var iteratorSize = GetEncodeIteratorSize();
