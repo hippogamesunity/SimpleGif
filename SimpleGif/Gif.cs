@@ -76,22 +76,24 @@ namespace SimpleGif
 			}
 		}
 
+		private static readonly Color32 EmptyColor = new Color32();
+
 		private static Gif CompleteDecode(GifParser parser, IDictionary<ImageDescriptor, byte[]> decoded)
 		{
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
-			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? new Color32();
-			GraphicControlExtension graphicControlExtension = null;
+			var backgroundColor = EmptyColor;
+			GraphicControlExtension gcExtension = null;
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
 			var state = new Color32[width * height];
 			var filled = false;
 			var frames = new List<GifFrame>();
-
+			
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
 				if (parser.Blocks[j] is GraphicControlExtension)
 				{
-					graphicControlExtension = (GraphicControlExtension) parser.Blocks[j];
+					gcExtension = (GraphicControlExtension) parser.Blocks[j];
 				}
 				else if (parser.Blocks[j] is ImageDescriptor)
 				{
@@ -101,9 +103,17 @@ namespace SimpleGif
 
 					var colorTable = imageDescriptor.LocalColorTableFlag == 1 ? GetUnityColors((ColorTable) parser.Blocks[j + 1]) : globalColorTable;
 					var colorIndexes = decoded[imageDescriptor];
-					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, colorIndexes, filled, width, height, state, colorTable);
+					var frame = DecodeFrame(gcExtension, imageDescriptor, colorIndexes, filled, width, height, state, colorTable);
 
 					frames.Add(frame);
+
+					//if (frames.Count == 1 && globalColorTable != null)
+					//{
+					//	if (gcExtension == null || gcExtension.TransparentColorFlag == 0 || gcExtension.TransparentColorIndex != parser.LogicalScreenDescriptor.BackgroundColorIndex)
+					//	{
+					//		backgroundColor = globalColorTable[parser.LogicalScreenDescriptor.BackgroundColorIndex];
+					//	}
+					//}
 
 					switch (frame.DisposalMethod)
 					{
@@ -678,7 +688,7 @@ namespace SimpleGif
 
 					if (transparent && !filled) continue;
 
-					var color = transparent ? new Color32() : colorTable[colorIndex];
+					var color = transparent ? EmptyColor : colorTable[colorIndex];
 					var fx = x + descriptor.ImageLeftPosition;
 					var fy = height - y - 1 - descriptor.ImageTopPosition; // Y-flip
 

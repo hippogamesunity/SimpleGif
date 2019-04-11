@@ -10,7 +10,7 @@ namespace Example
 {
 	internal class Program
 	{
-		private const string Path = "LargeSample.gif";
+		private const string Path = "Panda.gif";
 
 		public static void Main()
 		{
