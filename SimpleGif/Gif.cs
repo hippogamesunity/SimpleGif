@@ -81,7 +81,7 @@ namespace SimpleGif
 		private static Gif CompleteDecode(GifParser parser, IDictionary<ImageDescriptor, byte[]> decoded)
 		{
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
-			var backgroundColor = EmptyColor;
+			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? EmptyColor;
 			GraphicControlExtension gcExtension = null;
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
@@ -123,7 +123,7 @@ namespace SimpleGif
 						case DisposalMethod.RestoreToBackgroundColor:
 							for (var i = 0; i < state.Length; i++)
 							{
-								state[i] = backgroundColor;
+								state[i] = EmptyColor;
 							}
 							filled = true;
 							break;
@@ -149,7 +149,7 @@ namespace SimpleGif
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
-			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? new Color32();
+			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? EmptyColor;
 			GraphicControlExtension graphicControlExtension = null;
 			var state = new Color32[width * height];
 			var filled = false;
@@ -191,7 +191,7 @@ namespace SimpleGif
 						case DisposalMethod.RestoreToBackgroundColor:
 							for (var i = 0; i < state.Length; i++)
 							{
-								state[i] = backgroundColor;
+								state[i] = EmptyColor;
 							}
 							filled = true;
 							break;
