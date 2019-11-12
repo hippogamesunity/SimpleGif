@@ -13,7 +13,7 @@ namespace SimpleGif.GifCore.Blocks
 
 			CommentData = ReadDataSubBlocks(bytes, ref index);
 
-			if (bytes[index++] != BlockTerminatoLabel) throw new Exception("Expected: " + BlockTerminatoLabel);
+			if (bytes[index++] != BlockTerminatorLabel) throw new Exception("Expected: " + BlockTerminatorLabel);
 		}
 	}
 }

@@ -10,7 +10,7 @@ namespace SimpleGif.GifCore.Blocks
 		public const byte CommentExtensionLabel = 0xFE;
 		public const byte ImageDescriptorLabel = 0x2C;
 		public const byte ApplicationExtensionLabel = 0xFF;
-		public const byte BlockTerminatoLabel = 0x00;
+		public const byte BlockTerminatorLabel = 0x00;
 
 		protected byte[] ReadDataSubBlocks(byte[] bytes, ref int index)
 		{

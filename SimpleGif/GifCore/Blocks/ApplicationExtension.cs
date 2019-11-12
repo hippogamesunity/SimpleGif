@@ -19,7 +19,7 @@ namespace SimpleGif.GifCore.Blocks
 			ApplicationAuthenticationCode = BitHelper.ReadBytes(bytes, 3, ref index);
 			ApplicationData = ReadDataSubBlocks(bytes, ref index);
 
-			if (bytes[index++] != BlockTerminatoLabel) throw new Exception("Expected: " + BlockTerminatoLabel);
+			if (bytes[index++] != BlockTerminatorLabel) throw new Exception("Expected: " + BlockTerminatorLabel);
 		}
 
 		public ApplicationExtension()

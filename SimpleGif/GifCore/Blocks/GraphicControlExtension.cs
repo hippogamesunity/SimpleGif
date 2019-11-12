@@ -28,7 +28,7 @@ namespace SimpleGif.GifCore.Blocks
 			DelayTime = BitHelper.ReadInt16(bytes, ref index);
 			TransparentColorIndex = bytes[index++];
 
-			if (bytes[index++] != BlockTerminatoLabel) throw new Exception("Expected: " + BlockTerminatoLabel);
+			if (bytes[index++] != BlockTerminatorLabel) throw new Exception("Expected: " + BlockTerminatorLabel);
 		}
 
 		public GraphicControlExtension(byte blockSize, byte reserved, byte disposalMethod, byte userInputFlag, byte transparentColorFlag, ushort delayTime, byte transparentColorIndex)
@@ -58,7 +58,7 @@ namespace SimpleGif.GifCore.Blocks
 			bytes.Add(packedByte);
 			bytes.AddRange(BitConverter.GetBytes(DelayTime));
 			bytes.Add(TransparentColorIndex);
-			bytes.Add(BlockTerminatoLabel);
+			bytes.Add(BlockTerminatorLabel);
 
 			return bytes;
 		}

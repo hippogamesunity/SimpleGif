@@ -88,7 +88,7 @@ namespace SimpleGif.GifCore
 						return blocks;
 					}
 					default:
-						throw new NotSupportedException(bytes[index].ToString("X"));
+						throw new NotSupportedException($"Unsupported GIF block: {bytes[index]:X}.");
 				}
 			}
 		}
