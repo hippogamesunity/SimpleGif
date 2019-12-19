@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace SimpleGif.GifCore.Blocks
 {
@@ -14,24 +15,23 @@ namespace SimpleGif.GifCore.Blocks
 
 		protected byte[] ReadDataSubBlocks(byte[] bytes, ref int index)
 		{
-			byte[] data = null;
+			var data = new List<byte>();
 
 			while (bytes[index] > 0) // Sub-block size
 			{
 				var subBlock = BitHelper.ReadBytes(bytes, bytes[index++], ref index);
 
-				if (data == null)
+				if (data.Count == 0)
 				{
-					data = subBlock;
+					data = subBlock.ToList();
 				}
 				else
 				{
-					Array.Resize(ref data, data.Length + subBlock.Length);
-					Buffer.BlockCopy(subBlock, 0, data, data.Length - subBlock.Length, subBlock.Length);
-				}
+				    data.AddRange(subBlock);
+                }
 			}
 
-			return data;
+			return data.ToArray();
 		}
 	}
 }
