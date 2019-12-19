@@ -23,6 +23,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <LangVersion>6</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,6 +43,7 @@
     <Compile Include="Data\DecodeProgress.cs" />
     <Compile Include="Data\EncodeProgress.cs" />
     <Compile Include="Data\GifFrame.cs" />
+    <Compile Include="Data\IndexedTexture2D.cs" />
     <Compile Include="Enums\DisposalMethod.cs" />
     <Compile Include="Enums\MasterPalette.cs" />
     <Compile Include="GifCore\TextureConverter.cs" />

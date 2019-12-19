@@ -6,7 +6,7 @@ namespace SimpleGif.GifCore
 	{
 		public bool Equals(byte[] x, byte[] y)
 		{
-			if (x.Length != y.Length) return false;
+            if (x.Length != y.Length) return false;
 
 			for (var i = 0; i < x.Length; i++)
 			{
@@ -27,5 +27,5 @@ namespace SimpleGif.GifCore
 
 			return hash;
 		}
-	}
+    }
 }

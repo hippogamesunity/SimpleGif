@@ -615,50 +615,9 @@ namespace SimpleGif
 
 		private static GifFrame DecodeFrame(GraphicControlExtension extension, ImageDescriptor descriptor, TableBasedImageData data, bool filled, int width, int height, Color32[] state, Color32[] colorTable)
 		{
-			var frame = new GifFrame();
-			var pixels = state;
-			var transparentIndex = -1;
-
-			if (extension != null)
-			{
-				frame.Delay = extension.DelayTime / 100f;
-				frame.DisposalMethod = (DisposalMethod) extension.DisposalMethod;
-
-				if (frame.DisposalMethod == DisposalMethod.RestoreToPrevious)
-				{
-					pixels = state.ToArray();
-				}
-
-				if (extension.TransparentColorFlag == 1)
-				{
-					transparentIndex = extension.TransparentColorIndex;
-				}
-			}
-
 			var colorIndexes = LzwDecoder.Decode(data.ImageData, data.LzwMinimumCodeSize);
 
-			for (var y = 0; y < descriptor.ImageHeight; y++)
-			{
-				for (var x = 0; x < descriptor.ImageWidth; x++)
-				{
-					var colorIndex = colorIndexes[x + y * descriptor.ImageWidth];
-					var transparent = colorIndex == transparentIndex;
-
-					if (transparent && !filled) continue;
-
-					var color = transparent ? new Color32() : colorTable[colorIndex];
-					var fx = x + descriptor.ImageLeftPosition;
-					var fy = height - y - 1 - descriptor.ImageTopPosition; // Y-flip
-
-					pixels[fx + fy * width] = pixels[fx + fy * width] = color;
-				}
-			}
-
-			frame.Texture = new Texture2D(width, height);
-			frame.Texture.SetPixels32(pixels);
-			frame.Texture.Apply();
-
-			return frame;
+			return DecodeFrame(extension, descriptor, colorIndexes, filled, width, height, state, colorTable);
 		}
 
 		private static GifFrame DecodeFrame(GraphicControlExtension extension, ImageDescriptor descriptor, byte[] colorIndexes, bool filled, int width, int height, Color32[] state, Color32[] colorTable)
