@@ -16,6 +16,8 @@ namespace SimpleGif
 	/// </summary>
 	public class Gif
 	{
+	    private static bool _free = false;
+
 		/// <summary>
 		/// List of GIF frames
 		/// </summary>
@@ -42,7 +44,12 @@ namespace SimpleGif
 		/// </summary>
 		public static void DecodeParallel(byte[] bytes, Action<DecodeProgress> onProgress) // TODO: Refact
 		{
-			var parser = new GifParser(bytes);
+		    if (_free)
+		    {
+		        throw new Exception("The Free version doesn't support this feature. Please consider buying the Full version of Power GIF.");
+		    }
+
+            var parser = new GifParser(bytes);
 			var decoded = new Dictionary<ImageDescriptor, byte[]>();
 			var frameCount = parser.Blocks.Count(i => i is ImageDescriptor);
 			var decodeProgress = new DecodeProgress { FrameCount = frameCount };
@@ -81,7 +88,7 @@ namespace SimpleGif
 		private static Gif CompleteDecode(GifParser parser, IDictionary<ImageDescriptor, byte[]> decoded)
 		{
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
-			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? EmptyColor;
+			//var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? EmptyColor;
 			GraphicControlExtension gcExtension = null;
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
@@ -149,11 +156,11 @@ namespace SimpleGif
 			var width = parser.LogicalScreenDescriptor.LogicalScreenWidth;
 			var height = parser.LogicalScreenDescriptor.LogicalScreenHeight;
 			var globalColorTable = parser.LogicalScreenDescriptor.GlobalColorTableFlag == 1 ? GetUnityColors(parser.GlobalColorTable) : null;
-			var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? EmptyColor;
+			//var backgroundColor = globalColorTable?[parser.LogicalScreenDescriptor.BackgroundColorIndex] ?? EmptyColor;
 			GraphicControlExtension graphicControlExtension = null;
 			var state = new Color32[width * height];
 			var filled = false;
-			//var frames = 0;
+			var frames = 0;
 			
 			for (var j = 0; j < parser.Blocks.Count; j++)
 			{
@@ -171,17 +178,13 @@ namespace SimpleGif
 					var data = (TableBasedImageData) blocks[j + 1 + imageDescriptor.LocalColorTableFlag];
 					var frame = DecodeFrame(graphicControlExtension, imageDescriptor, data, filled, width, height, state, colorTable);
 
-					//if (frame.Texture.width > 128 || frame.Texture.height > 128)
-					//{
-					//	throw new Exception("Free version has maximum supported size 128x128 px. Please consider buying the full version of Power GIF.");
-					//}
+				    if (_free)
+				    {
+				        if (frame.Texture.width > 256 || frame.Texture.height > 256) throw new Exception("The Free version has maximum supported size 256x256 px. Please consider buying the Full version of Power GIF.");
+                        if (++frames > 20) throw new Exception("The Free version is limited by 20 frames. Please consider buying the Full version of Power GIF.");
+                    }
 
-					//if (++frames > 20)
-					//{
-					//	throw new Exception("Free version has frame limit 20. Please consider buying the full version of Power GIF.");
-					//}
-
-					yield return frame;
+                    yield return frame;
 
 					switch (frame.DisposalMethod)
 					{
@@ -255,17 +258,13 @@ namespace SimpleGif
 		/// </summary>
 		public byte[] Encode(int scale = 1)
 		{
-			//if (Frames[0].Texture.width > 128 || Frames[0].Texture.height > 128)
-			//{
-			//	throw new Exception("Free version has maximum supported size 128x128 px. Please consider buying the full version of Power GIF.");
-			//}
+		    if (_free)
+		    {
+		        if (Frames[0].Texture.width > 256 || Frames[0].Texture.height > 256) throw new Exception("The free version has maximum supported size 256x256 px. Please consider buying the Full version of Power GIF.");
+                if (Frames.Count > 20) throw new Exception("The Free version is limited by 20 frames. Please consider buying the Full version of Power GIF.");
+            }
 
-			//if (Frames.Count > 10)
-			//{
-			//	throw new Exception("Free version has frame limit 10. Please consider buying the full version of Power GIF.");
-			//}
-
-			var bytes = new List<byte>();
+            var bytes = new List<byte>();
 			var iterator = EncodeIterator(scale);
 			var iteratorSize = GetEncodeIteratorSize();
 			var index = 0;
@@ -292,7 +291,12 @@ namespace SimpleGif
 		/// </summary>
 		public void EncodeParallel(Action<EncodeProgress> onProgress, int scale = 1) // TODO: Refact.
 		{
-			const string header = "GIF89a";
+		    if (_free)
+		    {
+		        throw new Exception("The Free version doesn't support this feature. Please consider buying the Full version of Power GIF.");
+            }
+
+            const string header = "GIF89a";
 			var width = (ushort) (Frames[0].Texture.width * scale);
 			var height = (ushort) (Frames[0].Texture.height * scale);
 			var globalColorTable = new List<Color32>();
@@ -406,7 +410,13 @@ namespace SimpleGif
 		/// </summary>
 		public IEnumerable<List<byte>> EncodeIterator(int scale = 1)
 		{
-			const string header = "GIF89a";
+		    if (_free)
+		    {
+		        if (Frames[0].Texture.width > 256 || Frames[0].Texture.height > 256) throw new Exception("The free version has maximum supported size 256x256 px. Please consider buying the Full version of Power GIF.");
+		        if (Frames.Count > 20) throw new Exception("The Free version is limited by 20 frames. Please consider buying the Full version of Power GIF.");
+		    }
+
+            const string header = "GIF89a";
 			var width = (ushort) (Frames[0].Texture.width * scale);
 		    var height = (ushort) (Frames[0].Texture.height * scale);
             var globalColorTable = new List<Color32>();
@@ -560,8 +570,7 @@ namespace SimpleGif
 			return size;
 		}
 
-		private static byte[] GetColorIndexes(Texture2D texture, List<Color32> colorTable,
-			byte localColorTableFlag, ref byte transparentColorFlag, ref byte transparentColorIndex)
+		private static byte[] GetColorIndexes(Texture2D texture, List<Color32> colorTable, byte localColorTableFlag, ref byte transparentColorFlag, ref byte transparentColorIndex)
 		{
 			var indexes = new Dictionary<Color32, int>();
 
