@@ -181,7 +181,7 @@ namespace SimpleGif
 				    if (_free)
 				    {
 				        if (frame.Texture.width > 256 || frame.Texture.height > 256) throw new Exception("The Free version has maximum supported size 256x256 px. Please consider buying the Full version of Power GIF.");
-                        if (++frames > 20) throw new Exception("The Free version is limited by 20 frames. Please consider buying the Full version of Power GIF.");
+                        //if (++frames > 20) throw new Exception("The Free version is limited by 20 frames. Please consider buying the Full version of Power GIF.");
                     }
 
                     yield return frame;
