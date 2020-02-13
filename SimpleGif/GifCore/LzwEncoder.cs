@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SimpleGif.GifCore
 {
 	internal static class LzwEncoder
 	{
-		public static byte GetMinCodeSize(byte[] colorIndexes)
+		public static byte GetMinCodeSize(byte max)
 		{
 			byte minCodeSize = 2;
-			var max = colorIndexes.Max();
 
 			while (1 << minCodeSize <= max)
 			{

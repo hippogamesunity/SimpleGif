@@ -169,7 +169,7 @@ namespace Example
 				decodeProgress = progress;
 			});
 
-			while (!decodeProgress.Completed)
+			while (decodeProgress.Exception == null && !decodeProgress.Completed)
 			{
 				Thread.Sleep(100);
 			}
